@@ -22,10 +22,8 @@ class TestParticleSuspension(unittest.TestCase):
 
 	def test_setOutOfBoundsCenters(self):
 		x = ParticleSuspension(2, 0.2)
-		before = x.centers
 		x.setCenters([[0,1],[-10,12]])
-		after = x.centers
-		self.assertTrue( before is after ) # Attemp bad center reassignment (message will print)
+		self.assertTrue( (x.centers == [[0,1],[-10,12]]).all() ) # Out of bounds reassignment (message will print)
 
 	def test_setCenters(self):
 		x = ParticleSuspension(2, 0.2)
@@ -51,6 +49,7 @@ class TestParticleSuspension(unittest.TestCase):
 		x.setCenters([[0,0],[0, 2]])
 		tagged = x.tag(1.0)
 		self.assertTrue( (tagged == [[0,1]]).all() ) 
+
 
 
 if __name__ == "__main__":

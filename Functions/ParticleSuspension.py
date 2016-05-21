@@ -30,10 +30,10 @@ class ParticleSuspension:
             centers = np.array(centers)
         try:
             if (centers.shape) != (self.N, 2):
-                raise Exception("Centers must be a (%s, 2) array-like object" %self.N)
+                raise Exception("Error: Centers must be a (%s, 2) array-like object" %self.N)
 
             if ( (centers < 0).any() or (centers > self.boxsize).any() ):
-                raise Exception("Centers out of bounds (0, %0.2f)" %self.boxsize)
+                print("Warning: centers out of bounds (0, %0.2f)" %self.boxsize)
 
             self.centers = centers
         except Exception as e:

@@ -67,8 +67,32 @@ class ParticleSuspension:
         # If bug is fixed, remove the following line ...
         pairs = np.array(list(pairs), dtype=np.int64)
         # ... and uncomment the following line 
-        #pairs.dtype = np.int64
+        #pairs = pairs.astype(np.int64)
         return pairs
+
+    def repel(self, pairs, swell, kick):
+        if not isinstance(pairs, np.ndarray):
+            pairs = np.array(pairs, dtype=np.int64)
+        pairs = pairs.astype(np.int64) # This is necessary for the c extension
+        centers = self.centers
+        boxsize = self.boxsize
+        # Fill the tagged pairs with the center coordinates
+        fillTagged = np.take(centers, pairs, axis=0)
+        # Find the position of the second particle in the tagged pair
+        # with respect to the first 
+        separation = np.diff(fillTagged, axis=1)
+        # Account for tagged across periodic bounary
+        np.putmask(separation, separation > swell, separation - boxsize)
+        # Normalize
+        norm = np.linalg.norm(separation, axis=2).flatten()
+        unitSeparation = (separation.T/norm).T
+        # Generate kick
+        kick = (unitSeparation.T * np.random.uniform(0, kick, unitSeparation.shape[0])).T
+        # Since the separation is with respect to the 'first' particle in a pair, 
+        # apply positive kick to the 'second' particle and negative kick to the first
+        crepel.iterate(centers, pairs[:,1], kick, pairs.shape[0])
+        crepel.iterate(centers, pairs[:,0], -kick, pairs.shape[0])
+        # Note: this may kick out of bounds -- be sure to wrap!
 
     def wrap(self):
         centers = self.centers

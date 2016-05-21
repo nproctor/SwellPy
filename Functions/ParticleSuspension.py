@@ -33,3 +33,10 @@ class ParticleSuspension:
             self.centers = centers
         except Exception as e:
             print(e)
+
+    # All else equal, re-randomizes centers
+    def reset(self, seed = None):
+        if ( isinstance(seed, int)):
+            np.random.seed(seed)
+        self.boxsize = self.__setBoxsize(self.N, self.areaFrac)
+        self.centers = self.__setCenters(self.N, self.boxsize, seed)

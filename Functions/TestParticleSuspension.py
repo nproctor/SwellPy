@@ -76,6 +76,17 @@ class TestParticleSuspension(unittest.TestCase):
 		self.assertEqual( before[0][1], after[0][1] )
 		self.assertEqual( before[1][1], after[1][1] )
 		self.assertEqual( (before-after)[0][0], -(before-after)[1][0] )
+
+	def test_train(self):
+		x = ParticleSuspension(2, 0.1)
+		before = [[1, 0],[1.25, 0]]
+		x.setCenters(before)
+		x.train(1.0, 0.1)
+		after = x.centers
+		self.assertEqual( before[0][1], after[0][1] )
+		self.assertEqual( before[1][1], after[1][1] ) 
+		self.assertTrue( abs(after[1,0] - after[1][1]) > 1.0 )
+
 		
 
 

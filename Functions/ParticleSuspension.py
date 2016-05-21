@@ -111,3 +111,13 @@ class ParticleSuspension:
             pairs = self.tag(swell)
             i += 1
         return i
+
+    def trainFor(self, swell, kick, cycles):
+        i = 0
+        pairs = self.tag(swell)
+        while (i < cycles) and ( len(pairs) > 0 ):
+            self.repel(pairs, swell, kick)
+            self.wrap()
+            pairs = self.tag(swell)
+            i += 1
+        return i

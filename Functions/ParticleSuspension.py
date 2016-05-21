@@ -100,3 +100,14 @@ class ParticleSuspension:
         # Wrap if outside of boundaries
         np.putmask(centers, centers>=boxsize, centers-boxsize)
         np.putmask(centers, centers<0, centers+boxsize)
+
+
+    def train(self, swell, kick):
+        i = 0
+        pairs = self.tag(swell)
+        while ( len(pairs) > 0 ):
+            self.repel(pairs, swell, kick)
+            self.wrap()
+            pairs = self.tag(swell)
+            i += 1
+        return i

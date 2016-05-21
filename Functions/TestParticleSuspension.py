@@ -56,6 +56,28 @@ class TestParticleSuspension(unittest.TestCase):
 		x.wrap()
 		self.assertTrue( (x.centers == [[x.boxsize-1, 0], [0,1]]).all() )
 
+	def test_normalRepel(self):
+		x = ParticleSuspension(2, 0.1)
+		x.setCenters([[1,1],[1.5,1.5]])
+		before = x.centers
+		x.repel(np.array([[0,1]]), 1.0, 1.0)
+		after = x.centers
+		self.assertEqual( (before-after)[0][0], (before-after)[0][1] )
+		self.assertEqual( (before-after)[1][0], (before-after)[1][1] )
+		self.assertEqual( (before-after)[0][0], -(before-after)[1][0] )
+		self.assertEqual( (before-after)[0][1], -(before-after)[1][1] )
+
+	def test_boundaryRepel(self):
+		x = ParticleSuspension(2, 0.1)
+		x.setCenters([[0,0],[0, 2]])
+		before = x.centers
+		x.repel([[0,1]], 1.0, 1.0)
+		after = x.centers
+		self.assertEqual( before[0][1], after[0][1] )
+		self.assertEqual( before[1][1], after[1][1] )
+		self.assertEqual( (before-after)[0][0], -(before-after)[1][0] )
+		
+
 
 
 if __name__ == "__main__":

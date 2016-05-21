@@ -27,7 +27,7 @@ class ParticleSuspension:
     # Does NOT check for placed inside of box
     def setCenters(self, centers):
         if not isinstance(centers, np.ndarray):
-            centers = np.array(centers)
+            centers = np.array(centers, dtype=np.float64)
         try:
             if (centers.shape) != (self.N, 2):
                 raise Exception("Error: Centers must be a (%s, 2) array-like object" %self.N)
@@ -69,3 +69,10 @@ class ParticleSuspension:
         # ... and uncomment the following line 
         #pairs.dtype = np.int64
         return pairs
+
+    def wrap(self):
+        centers = self.centers
+        boxsize = self.boxsize
+        # Wrap if outside of boundaries
+        np.putmask(centers, centers>=boxsize, centers-boxsize)
+        np.putmask(centers, centers<0, centers+boxsize)

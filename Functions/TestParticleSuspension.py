@@ -32,7 +32,14 @@ class TestParticleSuspension(unittest.TestCase):
 		new = [[0,1],[2.0, 1.89]]
 		x.setCenters(new)
 		self.assertTrue( (x.centers == new).all() )
- 
+
+	def test_reset(self):
+		x = ParticleSuspension(10, 0.2, 10) # Feeding seed for randomization
+		before = x.centers
+		x.reset(10) # feeding same seed
+		after = x.centers
+		self.assertTrue( (before == after).all() ) 
+
 
 if __name__ == "__main__":
 	unittest.main()

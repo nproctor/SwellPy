@@ -50,6 +50,12 @@ class TestParticleSuspension(unittest.TestCase):
 		tagged = x.tag(1.0)
 		self.assertTrue( (tagged == [[0,1]]).all() ) 
 
+	def test_wrap(self):
+		x = ParticleSuspension(2, 0.2)
+		x.setCenters([[-1, 0], [0, 1]]) # Will print warning message
+		x.wrap()
+		self.assertTrue( (x.centers == [[x.boxsize-1, 0], [0,1]]).all() )
+
 
 
 if __name__ == "__main__":

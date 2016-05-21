@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
+from scipy.spatial import cKDTree
+import crepel
 
 class ParticleSuspension:
     def __init__(self, N, areaFrac, seed=None):
@@ -54,3 +56,16 @@ class ParticleSuspension:
         for pair in self.centers:
             ax.add_artist(Circle(xy=(pair), radius = 1.0))
         plt.show()
+
+    # "Tag" overlapping particles
+    def tag(self, swell):
+        # Note cKD can retun numpy arrays in query pairs
+        # but there is a deallocation bug in the scipy.spatial code
+        # converting from a set to an array avoids it
+        tree = cKDTree(self.centers, boxsize = self.boxsize)
+        pairs = tree.query_pairs(swell)
+        # If bug is fixed, remove the following line ...
+        pairs = np.array(list(pairs), dtype=np.int64)
+        # ... and uncomment the following line 
+        #pairs.dtype = np.int64
+        return pairs

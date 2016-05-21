@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import Circle
 
 class ParticleSuspension:
     def __init__(self, N, areaFrac, seed=None):
@@ -6,6 +8,7 @@ class ParticleSuspension:
         self.areaFrac = areaFrac
         self.boxsize = self.__setBoxsize(N, areaFrac)
         self.centers = self.__setCenters(N, self.boxsize, seed)
+
 
     # Sets the boxsize based on the number of paticles and areafraction
     def __setBoxsize (self, N, areaFrac):
@@ -40,3 +43,14 @@ class ParticleSuspension:
             np.random.seed(seed)
         self.boxsize = self.__setBoxsize(self.N, self.areaFrac)
         self.centers = self.__setCenters(self.N, self.boxsize, seed)
+
+
+    # To scale plot of particle position
+    def plot(self):
+        fig = plt.figure()
+        plt.xlim(0, self.boxsize)
+        plt.ylim(0, self.boxsize)
+        ax = plt.gca()
+        for pair in self.centers:
+            ax.add_artist(Circle(xy=(pair), radius = 1.0))
+        plt.show()

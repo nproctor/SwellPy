@@ -40,6 +40,18 @@ class TestParticleSuspension(unittest.TestCase):
 		after = x.centers
 		self.assertTrue( (before == after).all() ) 
 
+	def test_direcTag(self):
+		x = ParticleSuspension(2, 0.2)
+		x.setCenters([[1,1], [1,1.5]])
+		tagged = x.tag(1.0)
+		self.assertTrue( (tagged == [[0,1]]).all() ) 
+
+	def test_boundaryTag(self):
+		x = ParticleSuspension(2, 0.2)
+		x.setCenters([[0,0],[0, 2]])
+		tagged = x.tag(1.0)
+		self.assertTrue( (tagged == [[0,1]]).all() ) 
+
 
 if __name__ == "__main__":
 	unittest.main()

@@ -18,7 +18,7 @@ class ParticleSuspension:
         return np.sqrt(N*np.pi/(4*areaFrac))
 
     # randomly places the particles inside the box
-    def reset (self, seed):
+    def reset (self, seed=None):
         if ( isinstance(seed, int) ):
             np.random.seed(seed)
         self.centers = np.random.uniform(0, self.boxsize, (self.N, 2))
@@ -115,7 +115,4 @@ class ParticleSuspension:
             pairs = self.tag(swell)
             i += 1
         return i
-
-
-
 

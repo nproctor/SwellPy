@@ -18,3 +18,10 @@ class MemoryRecognition:
         swells = np.arange(Min, Max + incr, incr)
         tagged = np.array(list(map(lambda x: self.fracTagAt(x), swells)))
         return swells, tagged
+
+    
+    def tagRate (self, Min, Max, incr):
+    	(ignore, tagged) = self.fracTag(Min-incr/2, Max+incr/2, incr)
+    	swells = np.arange(Min, Max, incr)
+    	rate = ( tagged[1:] - tagged[:-1] ) / incr
+    	return swells, rate

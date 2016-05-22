@@ -14,8 +14,7 @@ class MemoryRecognition:
         return len(np.unique(pairs)) / self.system.N
 
     # Query for number of particles tagged for a range of shears
-    def fracTagFor(self, Min, Max, incr):
+    def fracTag(self, Min, Max, incr):
         swells = np.arange(Min, Max + incr, incr)
         tagged = np.array(list(map(lambda x: self.fracTagAt(x), swells)))
-        return tagged
-
+        return swells, tagged

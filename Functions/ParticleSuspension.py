@@ -9,7 +9,8 @@ class ParticleSuspension:
         self.N = N
         self.areaFrac = areaFrac
         self.boxsize = self.__setBoxsize(N, areaFrac)
-        self.centers = self.__setCenters(N, self.boxsize, seed)
+        self.centers = None
+        self.reset(seed)
 
 
     # Sets the boxsize based on the number of paticles and areafraction
@@ -17,10 +18,10 @@ class ParticleSuspension:
         return np.sqrt(N*np.pi/(4*areaFrac))
 
     # randomly places the particles inside the box
-    def __setCenters (self, N, boxsize, seed):
+    def reset (self, seed):
         if ( isinstance(seed, int) ):
             np.random.seed(seed)
-        return np.random.uniform(0, boxsize, (N, 2))
+        self.centers = np.random.uniform(0, self.boxsize, (self.N, 2))
 
     # Manually set the particle placement
     # DOES check for correct format
@@ -38,14 +39,6 @@ class ParticleSuspension:
             self.centers = centers
         except Exception as e:
             print(e)
-
-    # All else equal, re-randomizes centers
-    def reset(self, seed = None):
-        if ( isinstance(seed, int)):
-            np.random.seed(seed)
-        self.boxsize = self.__setBoxsize(self.N, self.areaFrac)
-        self.centers = self.__setCenters(self.N, self.boxsize, seed)
-
 
     # To scale plot of particle position
     def plot(self):
@@ -112,6 +105,7 @@ class ParticleSuspension:
             i += 1
         return i
 
+
     def trainFor(self, swell, kick, cycles):
         i = 0
         pairs = self.tag(swell)
@@ -121,3 +115,7 @@ class ParticleSuspension:
             pairs = self.tag(swell)
             i += 1
         return i
+
+
+
+

@@ -25,3 +25,9 @@ class MemoryRecognition:
     	swells = np.arange(Min, Max, incr)
     	rate = ( tagged[1:] - tagged[:-1] ) / incr
     	return swells, rate
+
+    def tagCurvature(self, Min, Max, incr):
+    	(ignore, tagRate) = self.tagRate(Min-incr/2, Max+incr/2, incr)
+    	swells = np.arange(Min, Max, incr)
+    	curve = ( tagRate[1:] - tagRate[:-1] ) / incr
+    	return swells, curve

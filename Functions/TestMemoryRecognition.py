@@ -31,7 +31,14 @@ class TestMemoryRecognition(unittest.TestCase):
 		x.newSystem(3, 0.2)
 		x.system.setCenters([[0,1],[0, 1.25], [0, 0.25]])
 		(swells, rate) = x.tagRate(0, 1.0, 0.2)
-		self.assertTrue( np.allclose(rate, [0, (2.0/3)/0.2, 0, 0, (1-2/3)/0.2, 0])
+		self.assertTrue( np.allclose(rate, [0, (2.0/3)/0.2, 0, 0, (1-2/3)/0.2, 0]) )
+
+	def test_tagCurve(self):
+		x = MemoryRecognition()
+		x.newSystem(3, 0.2)
+		x.system.setCenters([[0,1],[0, 1.25], [0, 0.25]])
+		(swells, curve) = x.tagCurvature(0, 1.0, 0.2)
+		self.assertTrue( np.allclose(curve, [0, (2.0/3)/0.04, -(2.0/3)/0.04, (1/3)/0.04, -(1/3)/0.04, 0]) )
 
 if __name__ == "__main__":
 	unittest.main()

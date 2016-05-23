@@ -40,5 +40,6 @@ class TestMemoryRecognition(unittest.TestCase):
 		(swells, curve) = x.tagCurvature(0, 1.0, 0.2)
 		self.assertTrue( np.allclose(curve, [0, (2.0/3)/0.04, -(2.0/3)/0.04, (1/3)/0.04, -(1/3)/0.04, 0]) )
 
+
 if __name__ == "__main__":
 	unittest.main()

@@ -31,3 +31,4 @@ class MemoryRecognition:
     	swells = np.arange(Min, Max, incr)
     	curve = ( tagRate[1:] - tagRate[:-1] ) / incr
     	return swells, curve
+    		

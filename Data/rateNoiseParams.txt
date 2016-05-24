@@ -1,0 +1,5 @@
+# Params for Rate Noise (AF: 0.2, Incr: 0.01)
+# MeanParams SDParams
+  75.10657   23.64581
+  -0.64116   -0.69606
+   0.82009    0.01736

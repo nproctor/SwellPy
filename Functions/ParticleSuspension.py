@@ -137,13 +137,28 @@ class ParticleSuspension:
     
     def tagRate (self, Min, Max, incr):
         (ignore, tagged) = self.fracTag(Min-incr/2, Max+incr/2, incr)
-        swells = np.arange(Min, Max, incr)
+        swells = np.arange(Min, Max + incr, incr)
         rate = ( tagged[1:] - tagged[:-1] ) / incr
         return swells, rate
 
     def tagCurvature(self, Min, Max, incr):
         (ignore, tagRate) = self.tagRate(Min-incr/2, Max+incr/2, incr)
-        swells = np.arange(Min, Max, incr)
+        swells = np.arange(Min, Max + incr, incr)
         curve = ( tagRate[1:] - tagRate[:-1] ) / incr
         return swells, curve
 
+    def plotFracTag(self, Min, Max, incr):
+        (swells, tag) = self.fracTag(Min, Max, incr)
+        plt.plot(swells, tag)
+        plt.show()
+
+
+    def plotTagRate(self, Min, Max, incr):
+        (swells, rate) = self.tagRate(Min, Max, incr)
+        plt.plot(swells, rate)
+        plt.show()
+
+    def plotTagCurve(self, Min, Max, incr):
+        (swells, curve) = self.tagCurvature(Min, Max, incr)
+        plt.plot(swells, curve)
+        plt.show()

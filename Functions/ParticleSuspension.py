@@ -11,22 +11,26 @@ class ParticleSuspension:
         self.boxsize = self.__setBoxsize(N, areaFrac)
         self.centers = None
         self.reset(seed)
+        self.recognition = None
 
 
-    # Sets the boxsize based on the number of paticles and areafraction
     def __setBoxsize (self, N, areaFrac):
+        """ Length of the sides of the 2-D box determined by
+        the number of particles (N) and area fraction of the particles (areaFrac) """
         return np.sqrt(N*np.pi/(4*areaFrac))
 
-    # randomly places the particles inside the box
     def reset (self, seed=None):
+        """ Randomly positions the particles inside the box. Returns a
+        N x 2 numpy array of the x and y components for every particles """
         if ( isinstance(seed, int) ):
             np.random.seed(seed)
         self.centers = np.random.uniform(0, self.boxsize, (self.N, 2))
 
-    # Manually set the particle placement
-    # DOES check for correct format
-    # Does NOT check for placed inside of box
+
     def setCenters(self, centers):
+        """ Manually set the position of particles in the box. Takes a N x 2 array-like object.
+        Raises an exception if centers are not of proper format. Raises a warning if the particles
+        are placed outside of the box """
         if not isinstance(centers, np.ndarray):
             centers = np.array(centers, dtype=np.float64)
         try:
@@ -40,18 +44,22 @@ class ParticleSuspension:
         except Exception as e:
             print(e)
 
-    # To scale plot of particle position
-    def plot(self):
+
+    def plot(self, swell = 1.0):
+        """ Shows plot of particles at a specific swell """
         fig = plt.figure()
         plt.xlim(0, self.boxsize)
         plt.ylim(0, self.boxsize)
         ax = plt.gca()
         for pair in self.centers:
-            ax.add_artist(Circle(xy=(pair), radius = 1.0))
+            ax.add_artist(Circle(xy=(pair), radius = swell/2))
         plt.show()
 
-    # "Tag" overlapping particles
+
     def tag(self, swell):
+        """ Tags overlapping particles at a specific swell. Returns a 
+        M x 2 numpy array filled with the indices of tagged particles
+        where M is the number of tagged pairs. """
         # Note cKD can retun numpy arrays in query pairs
         # but there is a deallocation bug in the scipy.spatial code
         # converting from a set to an array avoids it

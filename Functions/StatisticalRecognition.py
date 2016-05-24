@@ -10,7 +10,8 @@ class StatisticalRecognition:
         self.meanCurveParams = None
         self.sdCurveParams = None
 
-
+    # This is the second derivative of the fraction of tagged particles in an untrained system
+    # Returns the mean and standard deviation for a system of size N
     def tagCurveNoise(self, N, Min, Max, incr, iters, areaFrac=0.2, seed=None):
         working_max = []
         x = ParticleSuspension(N, areaFrac, seed)
@@ -22,6 +23,11 @@ class StatisticalRecognition:
         sd = np.std(working_max)
         return mean, sd
 
+    # This is the second derivative of the fraction of tagged particles in an untrained system
+    # Returns a list of mean and standard deviation values that correspond to the 
+    # inputed "Nlist" ( a list of number of particles )
+    # NOTE: this iters is divided by the number of particles in the system so should be
+    # at least as big as the number of particles in your system
     def curveNoiseCollect(self, Nlist, Min, Max, incr, iters, areaFrac=0.2, seed=None):
         means = []
         sds = []
@@ -31,6 +37,8 @@ class StatisticalRecognition:
             sds.append(sd)
         return means, sds
 
+    # This is the first derivative of the fraction of tagged particles in an untrained system
+    # Returns the mean and standard deviation for a system of size N
     def tagRateNoise(self, N, Min, Max, incr, iters, areaFrac=0.2, seed=None):
         working_max = []
         x = ParticleSuspension(N, areaFrac, seed)
@@ -42,6 +50,11 @@ class StatisticalRecognition:
         sd = np.std(working_max)
         return mean, sd
 
+    # This is the first derivative of the fraction of tagged particles in an untrained system
+    # Returns a list of mean and standard deviation values that correspond to the 
+    # inputed "Nlist" ( a list of number of particles )
+    # NOTE: this iters is divided by the number of particles in the system so should be
+    # at least as big as the number of particles in your system
     def rateNoiseCollect(self, Nlist, Min, Max, incr, iters, areaFrac=0.2, seed=None):
         means = []
         sds = []
@@ -54,17 +67,22 @@ class StatisticalRecognition:
     def fitFunc(self, x, a, b, c):
         return a*x**(b) + c
 
+
+    # Fits noise data to fitFunc, returns the parameters to be used in fitFunc
     def noiseFit(self, N, means, sds):
         MeanParams, MeanCovar = curve_fit(self.fitFunc, N, means, bounds=([-np.inf, -np.inf, -np.inf],[np.inf, 0, np.inf]))
         SdParams, SdCovar = curve_fit(self.fitFunc, N, sds, bounds=([-np.inf, -np.inf, -np.inf],[np.inf, 0, np.inf]))
         return MeanParams, SdParams
 
+    # Uses the fit params to produce expected mean noise and
+    # standard deviation of noise
     def expectedNoise(self, N, meanParams, sdParams):
         mean = self.fitFunc(N, *meanParams)
         sd = self.fitFunc(N, *sdParams)
         return mean, sd
 
-
+    # "folder" parameter must be inside of SwellPy/data
+    # Can be used for param data or collect data
     def save(self, filename, data, header, folder=None):
         os.chdir("../data")
         if isinstance(folder, str):
@@ -73,6 +91,7 @@ class StatisticalRecognition:
         np.savetxt(filename, data, header=header, fmt = "%10.5lf")
 
     # "folder" parameter must be inside of SwellPy/data
+    # Can be used for param data or collect data
     def load(self, filename, folder=None):
         os.chdir("../data")
         if isinstance(folder, str):

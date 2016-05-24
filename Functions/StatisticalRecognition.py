@@ -1,6 +1,7 @@
 import numpy as np
 from ParticleSuspension import *
 from scipy.optimize import curve_fit
+import os
 
 class StatisticalRecognition:
     def __init__(self):
@@ -25,7 +26,7 @@ class StatisticalRecognition:
         means = []
         sds = []
         for N in Nlist:
-            (mean, sd) = self.tagCurveNoise(N, Min, Max, incr, iters)
+            (mean, sd) = self.tagCurveNoise(N, Min, Max, incr, int(iters/N))
             means.append(mean)
             sds.append(sd)
         return means, sds
@@ -45,23 +46,37 @@ class StatisticalRecognition:
         means = []
         sds = []
         for N in Nlist:
-            (mean, sd) = self.tagRateNoise(N, Min, Max, incr, iters)
+            (mean, sd) = self.tagRateNoise(N, Min, Max, incr, int(iters/N))
             means.append(mean)
             sds.append(sd)
         return means, sds
 
-    def fitFunc(x, a, b, c):
+    def fitFunc(self, x, a, b, c):
         return a*x**(b) + c
 
     def noiseFit(self, N, means, sds):
-        MeanParams, MeanCovar = curve_fit(self.fitFunc, N, mean, bounds=([-np.inf, -np.inf, -np.inf],[np.inf, 0, np.inf]))
-        SdParams, SdCovar = curve_fit(self.fitFunc, N, sd, bounds=([-np.inf, -np.inf, -np.inf],[np.inf, 0, np.inf]))
+        MeanParams, MeanCovar = curve_fit(self.fitFunc, N, means, bounds=([-np.inf, -np.inf, -np.inf],[np.inf, 0, np.inf]))
+        SdParams, SdCovar = curve_fit(self.fitFunc, N, sds, bounds=([-np.inf, -np.inf, -np.inf],[np.inf, 0, np.inf]))
         return MeanParams, SdParams
 
-    def expectedNoise(sef, N, meanParams, sdParams):
-        mean = fitFunc(N, *meanParams)
-        sd = fitFunc(N, *sdParams)
+    def expectedNoise(self, N, meanParams, sdParams):
+        mean = self.fitFunc(N, *meanParams)
+        sd = self.fitFunc(N, *sdParams)
         return mean, sd
 
 
-    
+    def save(self, filename, data, header, folder=None):
+        os.chdir("../data")
+        if isinstance(folder, str):
+            os.chdir(folder)
+        data = np.array(data).T
+        np.savetxt(filename, data, header=header, fmt = "%10.5lf")
+
+    # "folder" parameter must be inside of SwellPy/data
+    def load(self, filename, folder=None):
+        os.chdir("../data")
+        if isinstance(folder, str):
+            os.chdir(folder)
+        data = np.loadtxt(filename)
+        x = data.T
+        return x

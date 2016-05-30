@@ -130,18 +130,18 @@ class ParticleSuspension:
             i += 1
         return i
 
-    def fracTagAt(self, swell):
+    def tagFracAt(self, swell):
         pairs = self.tag(swell)
         return len(np.unique(pairs)) / self.N
 
     # Query for number of particles tagged for a range of shears
-    def fracTag(self, Min, Max, incr):
+    def tagFrac(self, Min, Max, incr):
         swells = np.arange(Min, Max + incr, incr)
         tagged = np.array(list(map(lambda x: self.fracTagAt(x), swells)))
         return swells, tagged
 
     
-    def tagRate (self, Min, Max, incr):
+    def tagRate(self, Min, Max, incr):
         (ignore, tagged) = self.fracTag(Min-incr/2, Max+incr/2, incr)
         swells = np.arange(Min, Max + incr, incr)
         rate = ( tagged[1:] - tagged[:-1] ) / incr

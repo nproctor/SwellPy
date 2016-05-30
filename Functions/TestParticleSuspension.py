@@ -87,23 +87,23 @@ class TestParticleSuspension(unittest.TestCase):
         self.assertEqual( before[1][1], after[1][1] ) 
         self.assertTrue( abs(after[1,0] - after[1][1]) > 1.0 )
 
-    def test_fracTagAt(self):
+    def test_tagFracAt(self):
         x = ParticleSuspension(2, 0.2)
         x.setCenters([[0,1],[0, 1.25]])
-        self.assertEqual(x.fracTagAt(1.0), 1.0)
-        self.assertEqual(x.fracTagAt(0.24), 0)
+        self.assertEqual(x.tagFracAt(1.0), 1.0)
+        self.assertEqual(x.tagFracAt(0.24), 0)
 
-    def test_fracTag(self):
+    def test_tagFrac(self):
         x = ParticleSuspension(3, 0.2)
         x.setCenters([[0,1],[0, 1.25], [0, 0.25]])
-        (swell, tagged) = x.fracTag(0, 1.0, 0.2)
+        (swell, tagged) = x.tagFrac(0, 1.0, 0.2)
         self.assertTrue( (tagged == [0.0, 0.0, 2.0/3, 2.0/3, 1.0, 1.0]).all() )
         self.assertTrue( np.allclose(swell, [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]) )
 
     def test_fracTagNegative(self):
         x = ParticleSuspension(3, 0.2)
         x.setCenters([[0,1],[0, 1.25], [0, 0.25]])
-        (swell, tagged) = x.fracTag(0, -1.0, -0.2)
+        (swell, tagged) = x.tagFrac(0, -1.0, -0.2)
         self.assertTrue( (tagged == [0.0, 0.0, 2.0/3, 2.0/3, 1.0, 1.0]).all() )
 
     def test_tagRate(self):

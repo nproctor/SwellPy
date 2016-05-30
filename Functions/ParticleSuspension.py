@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from scipy.spatial import cKDTree
 import crepel
+import pickle
+import os
 
 class ParticleSuspension:
     def __init__(self, N, areaFrac, seed=None):
@@ -12,7 +14,6 @@ class ParticleSuspension:
         self.centers = None
         self.reset(seed)
         self.recognition = None
-
 
     def __setBoxsize (self, N, areaFrac):
         """ Length of the sides of the 2-D box determined by
@@ -45,15 +46,20 @@ class ParticleSuspension:
             print(e)
 
 
-    def plot(self, swell = 1.0):
+    def plot(self, swell = 1.0, show=True, save=False, filename=None):
         """ Shows plot of particles at a specific swell """
         fig = plt.figure()
+        plt.title("Particle position")
         plt.xlim(0, self.boxsize)
         plt.ylim(0, self.boxsize)
         ax = plt.gca()
         for pair in self.centers:
             ax.add_artist(Circle(xy=(pair), radius = swell/2))
-        plt.show()
+        if save == True:
+            plt.savefig(filename)
+        if show == True:
+            plt.show()
+        plt.close()
 
 
     def tag(self, swell):
@@ -147,18 +153,54 @@ class ParticleSuspension:
         curve = ( tagRate[1:] - tagRate[:-1] ) / incr
         return swells, curve
 
-    def plotFracTag(self, Min, Max, incr):
+    def plotTagFrac(self, Min, Max, incr, show=True, save=False, filename=None):
         (swells, tag) = self.fracTag(Min, Max, incr)
+        fig = plt.figure()
+        plt.title("Fraction of tagged particles")
+        plt.xlabel("Swell")
         plt.plot(swells, tag)
-        plt.show()
+        if save == True:
+            plt.savefig(filename)
+        if show == True:
+            plt.show()
+        plt.close()
 
-
-    def plotTagRate(self, Min, Max, incr):
+    def plotTagRate(self, Min, Max, incr, show=True, save=False, filename=None):
         (swells, rate) = self.tagRate(Min, Max, incr)
+        fig = plt.figure()
+        plt.title("Particles tag rate")
+        plt.xlabel("Swell")
+        plt.xlim(0, Max)
+        plt.ylim(0, 15)
         plt.plot(swells, rate)
-        plt.show()
+        if save == True:
+            plt.savefig(filename)
+        if show == True:
+            plt.show()
+        plt.close()
 
-    def plotTagCurve(self, Min, Max, incr):
+    def plotTagCurve(self, Min, Max, incr, show=True, save=False, filename=None):
         (swells, curve) = self.tagCurvature(Min, Max, incr)
+        fig = plt.figure()
+        plt.title("Particle tag curvature")
+        plt.xlabel("Swell")
+        plt.xlim(0, Max)
+        plt.ylim(-600, 600)
         plt.plot(swells, curve)
-        plt.show()
+        if save == True:
+            plt.savefig(filename)
+        if show == True:
+            plt.show()
+        plt.close()
+
+
+def save(system, filename):
+    f = open(filename, "wb")
+    pickle.dump(system, f)
+    f.close()
+
+def load(filename):
+    f = open(filename, "rb")
+    x = pickle.load(f)
+    f.close()
+    return x

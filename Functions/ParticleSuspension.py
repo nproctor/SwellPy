@@ -272,7 +272,7 @@ class ParticleSuspension:
                 The fraction of particles tagged at each swell diameter in the return 
                 object "swells" respectively
         """
-        swells = np.linspace(Min, Max, (Max-Min)/incr + 1 )
+        swells = np.arange(Min, Max+incr, incr)
         tagged = np.array(list(map(lambda x: self.tagFracAt(x), swells)))
         return swells, tagged
 
@@ -304,7 +304,7 @@ class ParticleSuspension:
                 in the return object "swells" respectively
         """
         (ignore, tagged) = self.tagFrac(Min-incr/2, Max+incr/2, incr)
-        swells = np.linspace(Min, Max, (Max-Min)/incr + 1)
+        swells = np.arange(Min, Max + incr, incr)
         rate = ( tagged[1:] - tagged[:-1] ) / incr
         return swells, rate
 
@@ -335,12 +335,12 @@ class ParticleSuspension:
                 in the return object "swells" respectively
         """
         (ignore, tagRate) = self.tagRate(Min-incr/2, Max+incr/2, incr)
-        swells = np.linspace(Min, Max, (Max-Min)/incr + 1)
+        swells = np.arange(Min, Max + incr, incr)
         curve = ( tagRate[1:] - tagRate[:-1] ) / incr
         return swells, curve
 
     def plotTagFrac(self, Min, Max, incr, show=True, save=False, filename="TagFracPlot.png"):
-        (swells, tag) = self.fracTag(Min, Max, incr)
+        (swells, tag) = self.tagFrac(Min, Max, incr)
         fig = plt.figure()
         plt.title("Fraction of tagged particles")
         plt.xlabel("Swell")
@@ -366,7 +366,7 @@ class ParticleSuspension:
         plt.close()
 
     def plotTagCurve(self, Min, Max, incr, show=True, save=False, filename="TagCurvePlot.png"):
-        (swells, curve) = self.tagCurvature(Min, Max, incr)
+        (swells, curve) = self.tagCurve(Min, Max, incr)
         fig = plt.figure()
         plt.title("Particle tag curvature")
         plt.xlabel("Swell")

@@ -16,7 +16,8 @@ class TestParticleSuspension(unittest.TestCase):
     def test_setBadFormatCenters(self):
         x = ParticleSuspension(3, 0.2)
         before = x.centers
-        x.setCenters([0,2,3,4,4,5,6]) # Attempt bad center reassignment (message will print)
+        with self.assertRaises(TypeError):
+            x.setCenters([0,2,3,4,4,5,6]) # Attempt bad center reassignment (message will print)
         after = x.centers
         self.assertTrue( before is after )
 

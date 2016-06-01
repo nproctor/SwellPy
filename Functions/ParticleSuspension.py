@@ -59,7 +59,7 @@ class ParticleSuspension:
         if not isinstance(centers, np.ndarray):
             centers = np.array(centers, dtype=np.float64)
         if (centers.shape) != (self.N, 2):
-            raise Exception("Error: Centers must be a (%s, 2) array-like object" %self.N)
+            raise TypeError("Centers must be a (%s, 2) array-like object" %self.N)
         if ( (centers < 0).any() or (centers > self.boxsize).any() ):
             print("Warning: centers out of bounds (0, %0.2f)" %self.boxsize)
         self.centers = centers

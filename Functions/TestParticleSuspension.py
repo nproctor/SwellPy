@@ -99,7 +99,7 @@ class TestParticleSuspension(unittest.TestCase):
         x.setCenters([[0,1],[0, 1.25], [0, 0.25]])
         (swell, tagged) = x.tagFrac(0, 1.0, 0.2)
         self.assertTrue( (tagged == [0.0, 0.0, 2.0/3, 2.0/3, 1.0, 1.0]).all() )
-        self.assertTrue( np.allclose(swell, [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]) )
+        np.testing.assert_array_almost_equal(swell, [0.0, 0.2, 0.4, 0.6, 0.8, 1.0], decimal = 5 )
 
     def test_fracTagNegative(self):
         x = ParticleSuspension(3, 0.2)
@@ -111,13 +111,13 @@ class TestParticleSuspension(unittest.TestCase):
         x = ParticleSuspension(3, 0.2)
         x.setCenters([[0,1],[0, 1.25], [0, 0.25]])
         (swells, rate) = x.tagRate(0, 1.0, 0.2)
-        self.assertTrue( np.allclose(rate, [0, (2.0/3)/0.2, 0, 0, (1-2/3)/0.2, 0]) )
+        np.testing.assert_array_almost_equal(rate, [0, (2.0/3)/0.2, 0, 0, (1-2/3)/0.2, 0], decimal = 5 )
 
     def test_tagCurve(self):
         x = ParticleSuspension(3, 0.2)
         x.setCenters([[0,1],[0, 1.25], [0, 0.25]])
         (swells, curve) = x.tagCurve(0, 1.0, 0.2)
-        self.assertTrue( np.allclose(curve, [0, (2.0/3)/0.04, -(2.0/3)/0.04, (1/3)/0.04, -(1/3)/0.04, 0]) )
+        np.testing.assert_array_almost_equal(curve, [0, (2.0/3)/0.04, -(2.0/3)/0.04, (1/3)/0.04, -(1/3)/0.04, 0], decimal = 5 )
 
 
 if __name__ == "__main__":

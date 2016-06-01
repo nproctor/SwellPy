@@ -86,7 +86,7 @@ def curveData(Nlist, areaFrac, Min, Max, incr, iterPerN, dataFilename = "curveNo
 
 
 def curveParams(areaFrac, incr, dataFilename = "curveNoiseData.txt", paramFilename = "curveNoiseParams.txt"):
-		"""
+	"""
 	Generate the curve noise fit parameters from the mean noise data. 
 
 	Parameters

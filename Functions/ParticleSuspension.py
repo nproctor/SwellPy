@@ -223,7 +223,7 @@ class ParticleSuspension:
         """          
         trueCycles = 0
         pairs = self.tag(swell)
-        while (i < cycles) and ( len(pairs) > 0 ):
+        while (trueCycles < cycles) and ( len(pairs) > 0 ):
             self.repel(pairs, swell, kick)
             self.wrap()
             pairs = self.tag(swell)

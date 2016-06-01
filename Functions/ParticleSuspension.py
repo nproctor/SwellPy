@@ -24,6 +24,8 @@ class ParticleSuspension:
         self.centers = None
         self.reset(seed)
         self.recognition = None
+        if not os.path.exists("../Plots"):
+            os.mkdir("../Plots")
 
     def __setBoxsize (self, N, areaFrac):
         """ 
@@ -65,7 +67,7 @@ class ParticleSuspension:
         self.centers = centers
 
 
-    def plot(self, swell, show=True, save=False, filename=None):
+    def plot(self, swell, show=True, save=False, filename="ParticlePlot.png"):
         """
         Show plot of physical particle placement in 2-D box 
         
@@ -88,7 +90,7 @@ class ParticleSuspension:
         for pair in self.centers:
             ax.add_artist(Circle(xy=(pair), radius = swell/2))
         if save == True:
-            plt.savefig(filename)
+            plt.savefig("../Plots/" + filename)
         if show == True:
             plt.show()
         plt.close()
@@ -337,19 +339,19 @@ class ParticleSuspension:
         curve = ( tagRate[1:] - tagRate[:-1] ) / incr
         return swells, curve
 
-    def plotTagFrac(self, Min, Max, incr, show=True, save=False, filename=None):
+    def plotTagFrac(self, Min, Max, incr, show=True, save=False, filename="TagFracPlot.png"):
         (swells, tag) = self.fracTag(Min, Max, incr)
         fig = plt.figure()
         plt.title("Fraction of tagged particles")
         plt.xlabel("Swell")
         plt.plot(swells, tag)
         if save == True:
-            plt.savefig(filename)
+            plt.savefig("../Plots/" + filename)
         if show == True:
             plt.show()
         plt.close()
 
-    def plotTagRate(self, Min, Max, incr, show=True, save=False, filename=None):
+    def plotTagRate(self, Min, Max, incr, show=True, save=False, filename="TagRatePlot.png"):
         (swells, rate) = self.tagRate(Min, Max, incr)
         fig = plt.figure()
         plt.title("Particles tag rate")
@@ -358,12 +360,12 @@ class ParticleSuspension:
         plt.ylim(0, 15)
         plt.plot(swells, rate)
         if save == True:
-            plt.savefig(filename)
+            plt.savefig("../Plots/" + filename)
         if show == True:
             plt.show()
         plt.close()
 
-    def plotTagCurve(self, Min, Max, incr, show=True, save=False, filename=None):
+    def plotTagCurve(self, Min, Max, incr, show=True, save=False, filename="TagCurvePlot.png"):
         (swells, curve) = self.tagCurvature(Min, Max, incr)
         fig = plt.figure()
         plt.title("Particle tag curvature")
@@ -372,19 +374,21 @@ class ParticleSuspension:
         plt.ylim(-600, 600)
         plt.plot(swells, curve)
         if save == True:
-            plt.savefig(filename)
+            plt.savefig("../Plots/" + filename)
         if show == True:
             plt.show()
         plt.close()
 
 
 def save(system, filename):
-    f = open(filename, "wb")
+    if not os.path.exists("../ParticleCache"):
+        os.mkdir("../ParticleCache")
+    f = open("../ParticleCache/" + filename, "wb")
     pickle.dump(system, f)
     f.close()
 
 def load(filename):
-    f = open(filename, "rb")
+    f = open("../ParticleCache/" + filename, "rb")
     x = pickle.load(f)
     f.close()
     return x

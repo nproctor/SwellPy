@@ -115,7 +115,7 @@ class TestParticleSuspension(unittest.TestCase):
     def test_tagCurve(self):
         x = ParticleSuspension(3, 0.2)
         x.setCenters([[0,1],[0, 1.25], [0, 0.25]])
-        (swells, curve) = x.tagCurvature(0, 1.0, 0.2)
+        (swells, curve) = x.tagCurve(0, 1.0, 0.2)
         self.assertTrue( np.allclose(curve, [0, (2.0/3)/0.04, -(2.0/3)/0.04, (1/3)/0.04, -(1/3)/0.04, 0]) )
 
 

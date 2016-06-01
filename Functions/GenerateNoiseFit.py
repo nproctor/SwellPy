@@ -30,3 +30,25 @@ def rateData(Nlist, areaFrac, Min, Max, incr, iterPerN, dataFilename = "rateNois
 	(mean, sd) = x.rateNoiseCollect(Nlist, Min, Max, incr, iterPerN)
 	header = "Areafrac: %0.4lf, Incr: %0.4lf, IterPerN: %d\nN,mean,sd" %(areaFrac, incr, iterPerN)
 	x.save(dataFilename, [Nlist, mean, sd], header)
+
+def rateParams(areaFrac, incr, dataFilename = "rateNoiseData.txt", paramFilename = "rateNoiseParams.txt"):
+	"""
+	Generate the rate noise fit parameters from the mean noise data. 
+
+	Parameters
+	----------
+		areaFrac: float
+				Total particle area to box area ratio at swell of 1.0
+        incr: float
+            The step size of diameter length when increasing from Min to Max
+        dataFilename: str, optional
+        	The name of the file where the data is be stored. Default is "rateNoiseData.txt"
+        paramFilename: str, optional
+        	The name of the file where the parameters will be stored. Default is "rateNoiseParams.txt"
+
+	"""
+	x = StatisticalRecognition()
+	(Nlist, means, sds) = x.load(dataFilename)
+	[meanParams, sdParams] = x.noiseFit(Nlist, means, sds)
+	header = "Params for Rate Noise (AF: %0.4lf, Incr: %0.4lf)\nMeanParams SDParams" %(areaFrac, incr)
+	x.save(paramFilename, [meanParams, sdParams], header)

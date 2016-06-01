@@ -9,6 +9,8 @@ class StatisticalRecognition:
         self.sdRateParams = None
         self.meanCurveParams = None
         self.sdCurveParams = None
+        if not os.path.exists("../Data"):
+            os.mkdir("../Data")
 
     # This is the second derivative of the fraction of tagged particles in an untrained system
     # Returns the mean and standard deviation for a system of size N
@@ -83,19 +85,13 @@ class StatisticalRecognition:
 
     # "folder" parameter must be inside of SwellPy/data
     # Can be used for param data or collect data
-    def save(self, filename, data, header, folder=None):
-        os.chdir("../data")
-        if isinstance(folder, str):
-            os.chdir(folder)
+    def save(self, filename, data, header):
         data = np.array(data).T
-        np.savetxt(filename, data, header=header, fmt = "%10.5lf")
+        np.savetxt("../Data/" + filename, data, header=header, fmt = "%10.5lf")
 
     # "folder" parameter must be inside of SwellPy/data
     # Can be used for param data or collect data
-    def load(self, filename, folder=None):
-        os.chdir("../data")
-        if isinstance(folder, str):
-            os.chdir(folder)
-        data = np.loadtxt(filename)
+    def load(self, filename):
+        data = np.loadtxt("../Data/" + filename)
         x = data.T
         return x

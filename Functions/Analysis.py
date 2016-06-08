@@ -75,7 +75,7 @@ def findFracTagSwell(frac, N, areaFrac, Min, Max, incr, kick):
 		return list(zip(trainOn,ftSwell))
 
 def searchForFrac(suspension, frac, incr):
-	swells = np.arange(0, 4.0 + incr, incr)
+	swells = np.arange(0, 5.0 + incr, incr)
 
 	curi = int(len(swells)/2)
 	Max = len(swells)

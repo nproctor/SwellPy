@@ -31,15 +31,15 @@ def evolution(N, areaFrac, swell, kick, addCycles, iterations):
 		x.plotTagRate(0, 3.0, 0.01, show = False, save=True, filename="TagRate%d.png" %i )
 		x.plotTagCurve(0, 3.0, 0.01, show = False, save=True, filename="TagCurve%d.png" %i )
 
-def swellAtFrac(Nfrac, N, areaFrac, Min, Max, incr, kick):
+def findFracTagSwell(frac, N, areaFrac, Min, Max, incr, kick):
 	""" 
 	Find the swell diameter at which a specific fraction of particles are tagged. The system
 	is trained on swells [Min, Max] by steps of incr. After each training, the swell at which
-	Nfrac fraction of particles are tagged is stored. 
+	frac fraction of particles are tagged is stored. 
 	
 	Parameters
 	----------
-		Nfrac: float
+		frac: float
 			The fraction of tagged particles 
 		N: int
 			The number of particles in the system
@@ -62,17 +62,38 @@ def swellAtFrac(Nfrac, N, areaFrac, Min, Max, incr, kick):
 			tagged particles occurs. 
 	"""	
 	trainOn = np.linspace(Min, Max, (Max-Min)/incr + 1)
-	NfracSwell = []
+	ftSwell = []
 	x = ParticleSuspension(N, areaFrac)
-	f = 1.0
-	for swell in trainOn:
-		x.train(swell, kick)
-		while x.tagFracAt(f) != Nfrac:
-			f += 0.01
-		NfracSwell.append(f)
-		f = 0
-	return list(zip(trainOn,NfracSwell))
+	try:
+		for swell in trainOn:
+			x.train(swell, kick)
+			f = searchForFrac(x, frac, incr)
+			ftSwell.append(f)
+	except KeyboardInterupt:
+		pass
+	finally:
+		return list(zip(trainOn,ftSwell))
 
+def searchForFrac(suspension, frac, incr):
+	swells = np.arange(0, 4.0 + incr, incr)
+
+	curi = int(len(swells)/2)
+	Max = len(swells)
+	Min = 0
+	curFrac = suspension.tagFracAt(swells[curi])
+	prevFrac = suspension.tagFracAt(swells[curi - 1])
+
+	while curFrac != frac or prevFrac == curFrac:
+		if curFrac < frac:
+			Min = curi
+			moveTo = int((Max - Min)/2) + Min
+		else:
+			Max = curi
+			moveTo = int((Max)/2)
+		curi = moveTo
+		curFrac = suspension.tagFracAt(swells[curi])
+		prevFrac = suspension.tagFracAt(swells[curi-1])
+	return swells[curi]
 
 def cyclesToRecognize(N, areaFrac, kick, Min, Max, incr, cycleIncr, tolerance):
 	""" 
@@ -117,7 +138,7 @@ def cyclesToRecognize(N, areaFrac, kick, Min, Max, incr, cycleIncr, tolerance):
 		while x.trainFor(swell, kick, cycle) != 0:
 			cycles += cycle
 			guess = isSignificant(mean, sd, x)
-			if isEqual(swell, guess, tolerance)
+			if isEqual(swell, guess, tolerance):
 				found.append([swell, cycles])
 				break
 		x.reset()
@@ -142,7 +163,7 @@ def isEqual(expected, true, tolerance):
 			return False
 	return True
 
-def loadCurveNoiseMeanSD(N, filename)
+def loadCurveNoiseMeanSD(N, filename):
 	(meanParams, sdParams) = sr.load(filename)
 	(mean, sd) = sr.expectedNoise(N, meanParams, sdParams)
 	return mean, sd
@@ -156,7 +177,7 @@ def ranRecogOne(N, areaFrac, kick, Min, Max, incr, maxCycles, tolerance):
 	for swell in swells:
 		cycles = randTrain(x, swell, kick, maxCycles, seed=None)
 		guess = isSignificant(mean, sd, x)
-		if isEqual([swell], guess)
+		if isEqual([swell], guess):
 			accuracy.append([swell, cycles, 1])
 		else:
 			accuracy.append([swell, cycles, 0])

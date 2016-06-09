@@ -20,18 +20,22 @@ def plotAll():
 	files = [file for file in os.listdir("../Data") if file.startswith("fracReachSwell")]
 	colors = list(col.cnames.values())
 	for file in files:
-		random.seed(float(file[-8:-5]))
+		random.seed(float(file[-8:-4]))
 		c = random.choice(colors)
 		f = sr.load(file)
-		plt.plot(f[0,:], f[1,:], color=c)
-		plt.title(file)
+		if file[14] == "0":
+			l = file[-8:-4]
+		else:
+			l = None
+		plt.plot(f[0,:], f[1,:], color=c, label = l)
+		plt.title("FracSwellReach")
 		plt.xlim(0, 2.0)
 		plt.ylim(0, 4.0)
 		plt.xlabel("Training Swell")
 		plt.ylabel("Fraction Found Swell")
+	plt.legend()
 	plt.show()
 	plt.close()
-
 
 
 if __name__ == "__main__":

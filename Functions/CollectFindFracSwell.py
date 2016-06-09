@@ -37,6 +37,22 @@ def plotAll():
 	plt.show()
 	plt.close()
 
+def plotGroup(strSwell):
+	files = [file for file in os.listdir("../Data") if file.startswith("fracReachSwell") and file.endswith(strSwell+".txt")]
+	if len(files) == 0:
+		print("No files found.")
+		return
+	for file in files:
+		f = sr.load(file)
+		plt.plot(f[0,:], f[1,:])
+		plt.title("Find swell reach fraction: " + strSwell)
+		plt.xlim(0, 2.0)
+		plt.ylim(0, 4.0)
+		plt.xlabel("Training Swell")
+		plt.ylabel("Fraction Found Swell")
+	plt.show()
+	plt.close()
+
 
 if __name__ == "__main__":
 	#collect([0.99], 1000, 0.2, 0.1, 1.9, 0.01, 0.1, 4)

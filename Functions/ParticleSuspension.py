@@ -17,6 +17,8 @@ class ParticleSuspension:
                 The number of particles in the system
             areaFrac: float
                 Total particle area to box area ratio at swell of 1.0 (original radius)
+            seed: int, optional
+            	Seed for initial particle placement randomiztion
         """
         self.N = N
         self.areaFrac = areaFrac

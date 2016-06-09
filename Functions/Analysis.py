@@ -61,7 +61,7 @@ def findFracTagSwell(frac, N, areaFrac, Min, Max, incr, kick):
 			on. The second element is the swell at which the specified fraction of 
 			tagged particles occurs. 
 	"""	
-	trainOn = np.linspace(Min, Max, (Max-Min)/incr + 1)
+	trainOn = np.arange(Min, Max+incr, incr)
 	ftSwell = []
 	x = ParticleSuspension(N, areaFrac)
 	try:
@@ -69,10 +69,10 @@ def findFracTagSwell(frac, N, areaFrac, Min, Max, incr, kick):
 			x.train(swell, kick)
 			f = searchForFrac(x, frac, incr)
 			ftSwell.append(f)
-	except KeyboardInterupt:
+	except KeyboardInterrupt:
 		pass
 	finally:
-		return list(zip(trainOn,ftSwell))
+		return np.array(list(zip(trainOn,ftSwell))).T
 
 def searchForFrac(suspension, frac, incr):
 	swells = np.arange(0, 5.0 + incr, incr)
@@ -86,10 +86,11 @@ def searchForFrac(suspension, frac, incr):
 	while curFrac != frac or prevFrac == curFrac:
 		if curFrac < frac:
 			Min = curi
-			moveTo = int((Max - Min)/2) + Min
+		elif curFrac > frac and prevFrac < frac:
+			break
 		else:
 			Max = curi
-			moveTo = int((Max)/2)
+		moveTo = int((Max - Min)/2) + Min
 		curi = moveTo
 		curFrac = suspension.tagFracAt(swells[curi])
 		prevFrac = suspension.tagFracAt(swells[curi-1])
@@ -183,32 +184,6 @@ def ranRecogOne(N, areaFrac, kick, Min, Max, incr, maxCycles, tolerance):
 			accuracy.append([swell, cycles, 0])
 		x.reset()
 	return np.array(accuracy)
-
-
-def ranRecogTwo(N, areaFrac, trainSwell, trainCycles, kick, Min, Max, incr, minRan, maxRan):
-	accuracy = []
-	(meanParams, sdParams) = sr.load("curveNoiseParams.txt")
-	(mean, sd) = sr.expectedNoise(N, meanParams, sdParams)
-	x = ParticleSuspension(N, areaFrac)
-	swells = np.arange(Min, Max + incr, incr)
-	for swell in swells:
-		x.trainFor(trainSwell, kick, trainCycles)
-		cycle = np.random.randint(minRan, maxRan)
-		x.trainFor(swell, kick, cycle)
-		guess = isSignificant(mean, sd, x)
-		true = np.array([swell, trainSwell])
-		true.sort()
-		if len(guess) == 2:
-			if abs(true[0] - guess[0]) < 0.00001 and abs(true[1] - guess[1]) < 0.00001 :
-				accuracy.append([swell, cycle, 1])
-			else:
-				accuracy.append([swell, cycle, 0])
-		else:
-			accuracy.append([swell, cycle, 0])
-		x.reset()
-	return np.array(accuracy)
-
-
 			
 
 def isSignificant(mean, sd, system):
@@ -218,4 +193,3 @@ def isSignificant(mean, sd, system):
 		if curve[i] > ( 2*mean):
 			sig.append(swells[i])
 	return sig
-

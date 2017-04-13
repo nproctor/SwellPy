@@ -9,7 +9,7 @@ class TestParticleSuspension(unittest.TestCase):
         self.assertEqual(x.centers.shape, (10, 2))
 
     def test_randomCentersBounds(self):
-        x = ParticleSuspension(10, 0.2)
+        x = ParticleSuspension(100, 0.2)
         self.assertTrue( (x.centers > 0).all() )
         self.assertTrue( (x.centers < x.boxsize).all() )
 
@@ -68,15 +68,30 @@ class TestParticleSuspension(unittest.TestCase):
         self.assertEqual( (before-after)[0][0], -(before-after)[1][0] )
         self.assertEqual( (before-after)[0][1], -(before-after)[1][1] )
 
-    def test_boundaryRepel(self):
+    def test_boundaryRepelVertical(self):
         x = ParticleSuspension(2, 0.1)
         x.setCenters([[0,0],[0, 2]])
-        before = x.centers
         x.repel([[0,1]], 1.0, 1.0)
-        after = x.centers
-        self.assertEqual( before[0][1], after[0][1] )
-        self.assertEqual( before[1][1], after[1][1] )
-        self.assertEqual( (before-after)[0][0], -(before-after)[1][0] )
+        self.assertEqual( x.centers[0][0], 0)
+        self.assertEqual( x.centers[1][0], 0)
+        np.testing.assert_almost_equal( x.centers[0][1], 2-x.centers[1][1], decimal=5)
+        self.assertTrue( x.centers[0][1] < 1.0)
+
+    def test_boundaryRepelHorizontal(self):
+        x = ParticleSuspension(2, 0.1)
+        x.setCenters([[0,0],[2, 0]])
+        x.repel([[0,1]], 1.0, 1.0)
+        self.assertEqual( x.centers[0][1], 0)
+        self.assertEqual( x.centers[1][1], 0)
+        np.testing.assert_almost_equal( x.centers[0][0], 2-x.centers[1][0], decimal=5)
+        self.assertTrue(x.centers[0][0] < 1.0)
+
+    def test_boundaryRepelDiagonal(self):
+        x = ParticleSuspension(2, 0.1)
+        x.setCenters([[0,0],[2, 2]])
+        x.repel([[0,1]], 1.0, 1.0)
+        np.testing.assert_almost_equal( x.centers[0][0], 2-x.centers[1][0], decimal=5)
+        np.testing.assert_almost_equal( x.centers[0][1], 2-x.centers[1][1], decimal=5)
 
     def test_train(self):
         x = ParticleSuspension(2, 0.1)

@@ -473,6 +473,8 @@ class ParticleSuspension2:
         pairs = np.array(list(pairs), dtype=np.int64)
         if (len(pairs) > 0):
             m_pairs = pairs[np.sum(pairs%mod == 0, axis=1) == 1]
+        else:
+            m_pairs = np.array([])
 
         return [l_pairs, m_pairs, sm_pairs]
 
@@ -556,7 +558,7 @@ class ParticleSuspension2:
             cycles += 1
         return cycles
 
-    def plot(self, l_swell, sm_swell, show=True, save=False, filename="ParticlePlot.png"):
+    def plot(self, l_swell, sm_swell, extend=False, show=True, save=False, filename="ParticlePlot.png"):
         """
         Show plot of physical particle placement in 2-D box 
         
@@ -574,15 +576,27 @@ class ParticleSuspension2:
         i = 0
         fig = plt.figure()
         plt.title("Particle position")
-        plt.xlim(0, self.boxsize)
-        plt.ylim(0, self.boxsize)
+        if (extend == True):
+            plt.xlim(-self.boxsize, 2*self.boxsize)
+            plt.ylim(-self.boxsize, 2*self.boxsize)
         ax = plt.gca()
         for pair in self.centers:
-            if (i % self.mod == 1):
-                ax.add_artist(Circle(xy=(pair), radius = l_swell/2))
+            if (i % self.mod == 0):
+                r = l_swell/2
             else:
-                ax.add_artist(Circle(xy=(pair), radius = sm_swell/2))
+                r = sm_swell/2
+            ax.add_artist(Circle(xy=(pair), radius = r))
+            if (extend == True) :
+                ax.add_artist(Circle(xy=(pair + [0, self.boxsize]), radius = r))
+                ax.add_artist(Circle(xy=(pair + [self.boxsize, 0]), radius = r))
+                ax.add_artist(Circle(xy=(pair + [self.boxsize, self.boxsize]), radius = r))
+                ax.add_artist(Circle(xy=(pair + [self.boxsize, -self.boxsize]), radius = r))
+                ax.add_artist(Circle(xy=(pair + [0, -self.boxsize]), radius = r))
+                ax.add_artist(Circle(xy=(pair + [-self.boxsize, 0]), radius = r))
+                ax.add_artist(Circle(xy=(pair + [-self.boxsize, -self.boxsize]), radius = r))
+                ax.add_artist(Circle(xy=(pair + [-self.boxsize, self.boxsize]), radius = r))
             i += 1
+        
         if save == True:
             plt.savefig("../Plots/" + filename)
         if show == True:

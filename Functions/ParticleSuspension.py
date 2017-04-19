@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from scipy.spatial import cKDTree
 import crepel
+import time
 import pickle
 import os
 
@@ -71,7 +72,7 @@ class ParticleSuspension:
         self.centers = centers
 
 
-    def plot(self, swell, show=True, save=False, filename="ParticlePlot.png"):
+    def plot(self, swell, show=True, extend = False, save=False, filename="ParticlePlot.png"):
         """
         Show plot of physical particle placement in 2-D box 
         
@@ -88,11 +89,19 @@ class ParticleSuspension:
         """
         fig = plt.figure()
         plt.title("Particle position")
-        plt.xlim(0, self.boxsize)
-        plt.ylim(0, self.boxsize)
+        if (extend):
+            plt.xlim(0, 2*self.boxsize)
+            plt.ylim(0, 2*self.boxsize)
+        else:
+            plt.xlim(0, self.boxsize)
+            plt.ylim(0, self.boxsize)
         ax = plt.gca()
         for pair in self.centers:
             ax.add_artist(Circle(xy=(pair), radius = swell/2))
+            if (extend):
+                ax.add_artist(Circle(xy=(pair + [0, self.boxsize]), radius = swell/2))
+                ax.add_artist(Circle(xy=(pair) + [self.boxsize, 0], radius = swell/2))
+                ax.add_artist(Circle(xy=(pair) + [self.boxsize, self.boxsize], radius = swell/2))
         if save == True:
             plt.savefig("../Plots/" + filename)
         if show == True:
@@ -198,10 +207,12 @@ class ParticleSuspension:
         cycles = 0
         pairs = self.tag(swell)
         while ( len(pairs) > 0 ):
+            print("%10d tagged\r" %len(pairs), end="")
             self.repel(pairs, swell, kick)
             self.wrap()
             pairs = self.tag(swell)
             cycles += 1
+        print("")
         return cycles
 
 
@@ -577,8 +588,8 @@ class ParticleSuspension2:
         fig = plt.figure()
         plt.title("Particle position")
         if (extend == True):
-            plt.xlim(-self.boxsize, 2*self.boxsize)
-            plt.ylim(-self.boxsize, 2*self.boxsize)
+            plt.xlim(0, 2*self.boxsize)
+            plt.ylim(0, 2*self.boxsize)
         ax = plt.gca()
         for pair in self.centers:
             if (i % self.mod == 0):
@@ -590,11 +601,6 @@ class ParticleSuspension2:
                 ax.add_artist(Circle(xy=(pair + [0, self.boxsize]), radius = r))
                 ax.add_artist(Circle(xy=(pair + [self.boxsize, 0]), radius = r))
                 ax.add_artist(Circle(xy=(pair + [self.boxsize, self.boxsize]), radius = r))
-                ax.add_artist(Circle(xy=(pair + [self.boxsize, -self.boxsize]), radius = r))
-                ax.add_artist(Circle(xy=(pair + [0, -self.boxsize]), radius = r))
-                ax.add_artist(Circle(xy=(pair + [-self.boxsize, 0]), radius = r))
-                ax.add_artist(Circle(xy=(pair + [-self.boxsize, -self.boxsize]), radius = r))
-                ax.add_artist(Circle(xy=(pair + [-self.boxsize, self.boxsize]), radius = r))
             i += 1
         
         if save == True:
@@ -605,10 +611,10 @@ class ParticleSuspension2:
 
 
 
-def save(system, filename):
+def save(system, swell):
     if not os.path.exists("../ParticleCache"):
         os.mkdir("../ParticleCache")
-    f = open("../ParticleCache/" + filename, "wb")
+    f = open("../ParticleCache/%s_%s_%dp_%0.5fs.p" %(time.strftime("%d-%m-%Y"), time.strftime("%H.%M.%S"), system.N, swell), "wb")
     pickle.dump(system, f)
     f.close()
 

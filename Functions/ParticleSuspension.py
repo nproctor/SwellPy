@@ -8,7 +8,7 @@ import pickle
 import os
 
 class ParticleSuspension:
-    def __init__(self, N, areaFrac, seed=None):
+    def __init__(self, N, areaFrac=None, seed=None):
         """
         Create a particle suspension object.
 
@@ -22,8 +22,12 @@ class ParticleSuspension:
                 Seed for initial particle placement randomiztion
         """
         self.N = N
-        self.areaFrac = areaFrac
-        self.boxsize = self.__setBoxsize(N, areaFrac)
+        if (areaFrac != None):
+            self.areaFrac = areaFrac
+            self.boxsize = self.__setBoxsize(N, areaFrac)
+        else:
+            self.boxsize = 1.0
+            self.areaFrac = self.__setAreaFrac(N)
         self.centers = None
         self.reset(seed)
         self.recognition = None
@@ -38,6 +42,16 @@ class ParticleSuspension:
         and the area fraction of the particles. Do not directly call this function 
         """
         return np.sqrt(N*np.pi/(4*areaFrac))
+
+    def __setAreaFrac (self, N):
+        """ 
+        Initial areafraction of the particles at their "default" radius of 1. 
+        Assumes the boxsize is 1.0. 
+        """
+        return N*np.pi/4
+
+    def percent_to_swell(self, percent):
+        return np.sqrt(percent * (self.boxsize)**2/self.N/np.pi)*2
 
     def reset (self, seed=None):
         """ Randomly positions the particles inside the box.
@@ -72,7 +86,7 @@ class ParticleSuspension:
         self.centers = centers
 
 
-    def plot(self, swell, show=True, extend = False, save=False, filename="ParticlePlot.png"):
+    def plot(self, swell, show=True, extend = False, figsize = (7,7), save=False, filename="ParticlePlot.png"):
         """
         Show plot of physical particle placement in 2-D box 
         
@@ -87,7 +101,7 @@ class ParticleSuspension:
             filename: string, default None
                 Destination to save the plot if save is True 
         """
-        fig = plt.figure()
+        fig = plt.figure(figsize = figsize)
         plt.title("Particle position")
         if (extend):
             plt.xlim(0, 2*self.boxsize)
@@ -137,6 +151,7 @@ class ParticleSuspension:
         #pairs = pairs.astype(np.int64)
         return pairs
 
+
     def repel(self, pairs, swell, kick):
         """ 
         Repels particles that overlap
@@ -163,6 +178,7 @@ class ParticleSuspension:
         separation = np.diff(fillTagged, axis=1)
         # Account for tagged across periodic bounary
         np.putmask(separation, separation > swell, separation - boxsize)
+        np.putmask(separation, separation < -swell, separation + boxsize)
         # Normalize
         norm = np.linalg.norm(separation, axis=2).flatten()
         unitSeparation = (separation.T/norm).T

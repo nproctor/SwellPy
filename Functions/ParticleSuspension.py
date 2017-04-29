@@ -7,8 +7,10 @@ import time
 import pickle
 import os
 
-class ParticleSuspension:
-    def __init__(self, N, areaFrac=None, seed=None):
+
+
+class monodisperse:
+    def __init__(self, N, boxsize=None, seed=None):
         """
         Create a particle suspension object.
 
@@ -22,36 +24,15 @@ class ParticleSuspension:
                 Seed for initial particle placement randomiztion
         """
         self.N = N
-        if (areaFrac != None):
-            self.areaFrac = areaFrac
-            self.boxsize = self.__setBoxsize(N, areaFrac)
-        else:
+        self.boxsize = boxsize
+        if (boxsize == None):
             self.boxsize = 1.0
-            self.areaFrac = self.__setAreaFrac(N)
         self.centers = None
         self.reset(seed)
-        self.recognition = None
-        if not os.path.exists("../Plots"):
-            os.mkdir("../Plots")
-        if not os.path.exists("../Data"):
-            os.mkdir("../Data")
 
-    def __setBoxsize (self, N, areaFrac):
-        """ 
-        Length of the sides of the 2-D box determined by the number of particles
-        and the area fraction of the particles. Do not directly call this function 
-        """
-        return np.sqrt(N*np.pi/(4*areaFrac))
+    def percent_to_diameter(self, percent):
+        return np.sqrt((percent * self.boxsize**2)/(np.pi*self.N))*2
 
-    def __setAreaFrac (self, N):
-        """ 
-        Initial areafraction of the particles at their "default" radius of 1. 
-        Assumes the boxsize is 1.0. 
-        """
-        return N*np.pi/4
-
-    def percent_to_swell(self, percent):
-        return np.sqrt(percent * (self.boxsize)**2/self.N/np.pi)*2
 
     def reset (self, seed=None):
         """ Randomly positions the particles inside the box.
@@ -86,43 +67,6 @@ class ParticleSuspension:
         self.centers = centers
 
 
-    def plot(self, swell, show=True, extend = False, figsize = (7,7), save=False, filename="ParticlePlot.png"):
-        """
-        Show plot of physical particle placement in 2-D box 
-        
-        Parameters
-        ----------
-            swell: float
-                The diameter length at which the particles are illustrated
-            show: bool, default True
-                Display the plot after generation
-            save: bool, default True
-                Save the plot after generation (default False)
-            filename: string, default None
-                Destination to save the plot if save is True 
-        """
-        fig = plt.figure(figsize = figsize)
-        plt.title("Particle position")
-        if (extend):
-            plt.xlim(0, 2*self.boxsize)
-            plt.ylim(0, 2*self.boxsize)
-        else:
-            plt.xlim(0, self.boxsize)
-            plt.ylim(0, self.boxsize)
-        ax = plt.gca()
-        for pair in self.centers:
-            ax.add_artist(Circle(xy=(pair), radius = swell/2))
-            if (extend):
-                ax.add_artist(Circle(xy=(pair + [0, self.boxsize]), radius = swell/2))
-                ax.add_artist(Circle(xy=(pair) + [self.boxsize, 0], radius = swell/2))
-                ax.add_artist(Circle(xy=(pair) + [self.boxsize, self.boxsize], radius = swell/2))
-        if save == True:
-            plt.savefig("../Plots/" + filename)
-        if show == True:
-            plt.show()
-        plt.close()
-
-
     def tag(self, swell):
         """ 
         Get the center indices of the particles that overlap at a 
@@ -145,10 +89,7 @@ class ParticleSuspension:
         # converting from a set to an array avoids it
         tree = cKDTree(self.centers, boxsize = self.boxsize)
         pairs = tree.query_pairs(swell)
-        # If bug is fixed, remove the following line ...
         pairs = np.array(list(pairs), dtype=np.int64)
-        # ... and uncomment the following line 
-        #pairs = pairs.astype(np.int64)
         return pairs
 
 
@@ -232,7 +173,7 @@ class ParticleSuspension:
         return cycles
 
 
-    def trainFor(self, swell, kick, cycles):
+    def train_for(self, swell, kick, cycles):
         """ 
         Tag and repel overlapping particles for a specific number of cycles
 
@@ -261,9 +202,45 @@ class ParticleSuspension:
             trueCycles += 1
         return trueCycles
 
-    def tagFracAt(self, swell):
+    def particle_plot(self, swell, show=True, extend = False, figsize = (7,7), save=False, filename="ParticlePlot.png"):
         """
-        Returns the fraction of particles that overlap at a specific swell diameter
+        Show plot of physical particle placement in 2-D box 
+        
+        Parameters
+        ----------
+            swell: float
+                The diameter length at which the particles are illustrated
+            show: bool, default True
+                Display the plot after generation
+            save: bool, default True
+                Save the plot after generation (default False)
+            filename: string, default None
+                Destination to save the plot if save is True 
+        """
+        fig = plt.figure(figsize = figsize)
+        plt.title("Particle position")
+        if (extend):
+            plt.xlim(0, 2*self.boxsize)
+            plt.ylim(0, 2*self.boxsize)
+        else:
+            plt.xlim(0, self.boxsize)
+            plt.ylim(0, self.boxsize)
+        ax = plt.gca()
+        for pair in self.centers:
+            ax.add_artist(Circle(xy=(pair), radius = swell/2))
+            if (extend):
+                ax.add_artist(Circle(xy=(pair + [0, self.boxsize]), radius = swell/2, alpha=0.75))
+                ax.add_artist(Circle(xy=(pair) + [self.boxsize, 0], radius = swell/2, alpha=0.75))
+                ax.add_artist(Circle(xy=(pair) + [self.boxsize, self.boxsize], radius = swell/2, alpha=0.75))
+        if save == True:
+            plt.savefig("../Plots/" + filename)
+        if show == True:
+            plt.show()
+        plt.close()
+
+    def tag_count_at(self, swell):
+        """
+        Returns the number of tagged pairs at a specific swell diameter
         
         Parameters
         ----------
@@ -278,7 +255,7 @@ class ParticleSuspension:
         pairs = self.tag(swell)
         return len(np.unique(pairs)) / self.N
 
-    def tagFrac(self, Min, Max, incr):
+    def tag_count(self, Min, Max, incr):
         """
         Return the fraction of particles that are tagged over a range of swell
         diameters.
@@ -303,12 +280,17 @@ class ParticleSuspension:
                 The fraction of particles tagged at each swell diameter in the return 
                 object "swells" respectively
         """
-        swells = np.arange(Min, Max+incr, incr)
-        tagged = np.array(list(map(lambda x: self.tagFracAt(x), swells)))
+        swell = Min
+        swells = []
+        while (swell <= Max):
+            swells.append(swell)
+            swell += incr
+        swells = np.array(swells)
+        tagged = np.array(list(map(lambda x: self.tag_count_at(x), swells)))
         return swells, tagged
 
     
-    def tagRate(self, Min, Max, incr):
+    def tag_rate(self, Min, Max, incr):
         """
         Returns the rate at which the fraction of particles overlap over a range of diameters.
         This is the same as measuring the fraction tagged at two swells and dividing by the difference
@@ -334,12 +316,11 @@ class ParticleSuspension:
                 The rate of the fraction of tagged particles at each swell diameter 
                 in the return object "swells" respectively
         """
-        (ignore, tagged) = self.tagFrac(Min-incr/2, Max+incr/2, incr)
-        swells = np.arange(Min, Max + incr, incr)
+        (swells, tagged) = self.tag_count(Min-incr/2, Max+incr/2, incr)
         rate = ( tagged[1:] - tagged[:-1] ) / incr
-        return swells, rate
+        return swells[:-1]+incr/2, rate
 
-    def tagCurve(self, Min, Max, incr):
+    def tag_curve(self, Min, Max, incr):
         """
         Returns the curvature at which the fraction of particles overlap over a range of diameters.
         This is the same as measuring the rate at two swells and dividing by the difference
@@ -365,52 +346,41 @@ class ParticleSuspension:
                 The change in the fraction of tagged particles at each swell diameter 
                 in the return object "swells" respectively
         """
-        (ignore, tagRate) = self.tagRate(Min-incr/2, Max+incr/2, incr)
-        swells = np.arange(Min, Max + incr, incr)
-        curve = ( tagRate[1:] - tagRate[:-1] ) / incr
-        return swells, curve
+        (swells, tag_rate) = self.tag_rate(Min-incr/2, Max+incr/2, incr)
+        curve = ( tag_rate[1:] - tag_rate[:-1] ) / incr
+        return swells[:-1]+incr/2, curve
 
-    def plotTagFrac(self, Min, Max, incr, show=True, save=False, filename="TagFracPlot.png"):
-        (swells, tag) = self.tagFrac(Min, Max, incr)
-        fig = plt.figure()
-        plt.title("Fraction of tagged particles")
+    def tag_plot(self, Min, Max, incr, mode='count', show=True, save=False, filename=None):
+        if (mode == 'rate'):
+            (swells, data) = self.tag_rate(Min, Max, incr)
+            plt.title("Particle Tag Rate")
+        elif (mode == 'curve'):
+            (swells, data) = self.tag_curve(Min, Max, incr)
+            plt.title("Particle Tag Curvature")
+        else:
+            (swells, data) = self.tag_count(Min, Max, incr)
+            plt.title("Particles Tagged")    
+        plt.plot(swells, data)
+        plt.xlim(Min, Max)
         plt.xlabel("Swell")
-        plt.plot(swells, tag)
         if save == True:
             plt.savefig("../Plots/" + filename)
         if show == True:
             plt.show()
         plt.close()
 
-    def plotTagRate(self, Min, Max, incr, show=True, save=False, filename="TagRatePlot.png"):
-        (swells, rate) = self.tagRate(Min, Max, incr)
-        fig = plt.figure()
-        plt.title("Particles tag rate")
-        plt.xlabel("Swell")
-        plt.xlim(0, Max)
-        plt.ylim(0, 15)
-        plt.plot(swells, rate)
-        if save == True:
-            plt.savefig("../Plots/" + filename)
-        if show == True:
-            plt.show()
-        plt.close()
+    def find_memory(self, low, high, incr, mode='rate'):
+        if (mode == 'rate'):
+            data = self.tag_rate(low, high, incr)
+        if (mode == 'curve'):
+            data = self.tag_curve(low, high, incr)
+        else:
+            print("Memory recognititon method not understood.")
+        swell = np.asarray(data).take(max(data[1]))
+        return swell
 
-    def plotTagCurve(self, Min, Max, incr, ylimMin=-200, ylimMax=200, show=True, save=False, filename="TagCurvePlot.png"):
-        (swells, curve) = self.tagCurve(Min, Max, incr)
-        fig = plt.figure()
-        plt.title("Particle tag curvature")
-        plt.xlabel("Swell")
-        plt.xlim(0, Max)
-        plt.ylim(ylimMin, ylimMax)
-        plt.plot(swells, curve)
-        if save == True:
-            plt.savefig("../Plots/" + filename)
-        if show == True:
-            plt.show()
-        plt.close()
 
-class ParticleSuspension2:
+class bidisperse:
     def __init__(self, N, mod, areaFrac, seed=None):
         """
         Create a particle suspension object.
@@ -433,10 +403,6 @@ class ParticleSuspension2:
         self.boxsize = self.__setBoxsize(N, areaFrac)
         self.centers = None
         self.reset(seed)
-        if not os.path.exists("../Plots"):
-            os.mkdir("../Plots")
-        if not os.path.exists("../Data"):
-            os.mkdir("../Data")
 
     def __setBoxsize (self, N, areaFrac):
         """ 
@@ -531,6 +497,7 @@ class ParticleSuspension2:
         separation = np.diff(fillTagged, axis=1)
         # Account for tagged across periodic bounary
         np.putmask(separation, separation > swell, separation - boxsize)
+        np.putmask(separation, separation < -swell, separation + boxsize)
         # Normalize
         norm = np.linalg.norm(separation, axis=2).flatten()
         unitSeparation = (separation.T/norm).T
@@ -585,7 +552,7 @@ class ParticleSuspension2:
             cycles += 1
         return cycles
 
-    def plot(self, l_swell, sm_swell, extend=False, show=True, save=False, filename="ParticlePlot.png"):
+    def particle_plot(self, l_swell, sm_swell, extend=False, show=True, save=False, filename="ParticlePlot.png"):
         """
         Show plot of physical particle placement in 2-D box 
         
@@ -614,9 +581,9 @@ class ParticleSuspension2:
                 r = sm_swell/2
             ax.add_artist(Circle(xy=(pair), radius = r))
             if (extend == True) :
-                ax.add_artist(Circle(xy=(pair + [0, self.boxsize]), radius = r))
-                ax.add_artist(Circle(xy=(pair + [self.boxsize, 0]), radius = r))
-                ax.add_artist(Circle(xy=(pair + [self.boxsize, self.boxsize]), radius = r))
+                ax.add_artist(Circle(xy=(pair + [0, self.boxsize]), radius = r, alpha=0.5))
+                ax.add_artist(Circle(xy=(pair + [self.boxsize, 0]), radius = r,alpha=0.5))
+                ax.add_artist(Circle(xy=(pair + [self.boxsize, self.boxsize]), radius = r,alpha=0.5))
             i += 1
         
         if save == True:
@@ -628,8 +595,6 @@ class ParticleSuspension2:
 
 
 def save(system, swell):
-    if not os.path.exists("../ParticleCache"):
-        os.mkdir("../ParticleCache")
     f = open("../ParticleCache/%s_%s_%dp_%0.5fs.p" %(time.strftime("%d-%m-%Y"), time.strftime("%H.%M.%S"), system.N, swell), "wb")
     pickle.dump(system, f)
     f.close()

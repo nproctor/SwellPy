@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from scipy.spatial import cKDTree
+from peakutils import peak
 import crepel
 import time
 import pickle
@@ -10,7 +11,7 @@ import os
 
 
 class monodisperse:
-    def __init__(self, N, boxsize=None, seed=None):
+    def __init__(self, N, area_fraction=None, seed=None):
         """
         Create a particle suspension object.
 
@@ -24,17 +25,21 @@ class monodisperse:
                 Seed for initial particle placement randomiztion
         """
         self.N = N
-        self.boxsize = boxsize
-        if (boxsize == None):
+        if (area_fraction == None):
             self.boxsize = 1.0
+        else:
+            np.sqrt(N*np.pi/(4*area_fraction))
         self.centers = None
         self.reset(seed)
 
     def percent_to_diameter(self, percent):
-        return np.sqrt((percent * self.boxsize**2)/(np.pi*self.N))*2
+        return np.sqrt((percent* self.boxsize**2)/(np.pi*self.N))*2
+
+    def diameter_to_percent(self, diameter):
+        return (self.N*np.pi*(diameter/2)**2)/(self.boxsize**2)
 
 
-    def reset (self, seed=None):
+    def reset(self, seed=None):
         """ Randomly positions the particles inside the box.
         
         Parameters
@@ -47,7 +52,7 @@ class monodisperse:
         self.centers = np.random.uniform(0, self.boxsize, (self.N, 2))
 
 
-    def setCenters(self, centers):
+    def set_centers(self, centers):
         """ Manually set the position of particles in the box. Raises an exception if 
         centers are not of proper format. Raises a warning if the particles
         are placed outside of the box
@@ -146,7 +151,7 @@ class monodisperse:
 
     def train(self, swell, kick):
         """
-        Repeatedly tags and repels overlapping particles until swollen particles
+        Repeatedly tags and repels overlapping particles until particles
         no longer touch
         
         Parameters
@@ -202,7 +207,7 @@ class monodisperse:
             trueCycles += 1
         return trueCycles
 
-    def particle_plot(self, swell, show=True, extend = False, figsize = (7,7), save=False, filename="ParticlePlot.png"):
+    def particle_plot(self, swell, show=True, extend = False, figsize = (7,7), filename=None):
         """
         Show plot of physical particle placement in 2-D box 
         
@@ -212,27 +217,33 @@ class monodisperse:
                 The diameter length at which the particles are illustrated
             show: bool, default True
                 Display the plot after generation
-            save: bool, default True
-                Save the plot after generation (default False)
+            extend: bool, default False
+                Show wrap around the periodic boundary. "Original" particles appear darker.
+            figsize: tuple of ints, default (7,7)
+                Scales the size of the figure
             filename: string, default None
-                Destination to save the plot if save is True 
+                Destination to save the plot. If None, the figure is not saved. 
         """
         fig = plt.figure(figsize = figsize)
-        plt.title("Particle position")
-        if (extend):
-            plt.xlim(0, 2*self.boxsize)
-            plt.ylim(0, 2*self.boxsize)
-        else:
-            plt.xlim(0, self.boxsize)
-            plt.ylim(0, self.boxsize)
+        plt.axis('off')
         ax = plt.gca()
         for pair in self.centers:
             ax.add_artist(Circle(xy=(pair), radius = swell/2))
             if (extend):
-                ax.add_artist(Circle(xy=(pair + [0, self.boxsize]), radius = swell/2, alpha=0.75))
-                ax.add_artist(Circle(xy=(pair) + [self.boxsize, 0], radius = swell/2, alpha=0.75))
-                ax.add_artist(Circle(xy=(pair) + [self.boxsize, self.boxsize], radius = swell/2, alpha=0.75))
-        if save == True:
+                ax.add_artist(Circle(xy=(pair + [0, self.boxsize]), radius = swell/2, alpha=0.3))
+                ax.add_artist(Circle(xy=(pair) + [self.boxsize, 0], radius = swell/2, alpha=0.3))
+                ax.add_artist(Circle(xy=(pair) + [self.boxsize, self.boxsize], radius = swell/2, alpha=0.3))
+        if (extend):
+            plt.xlim(0, 2*self.boxsize)
+            plt.ylim(0, 2*self.boxsize)
+            plt.plot([0,self.boxsize*2], [self.boxsize, self.boxsize], ls = ':', color = '#333333')
+            plt.plot([self.boxsize,self.boxsize], [0, self.boxsize*2], ls = ':', color = '#333333')
+
+        else:
+            plt.xlim(0, self.boxsize)
+            plt.ylim(0, self.boxsize)
+        fig.tight_layout()
+        if filename != None:
             plt.savefig("../Plots/" + filename)
         if show == True:
             plt.show()
@@ -353,37 +364,60 @@ class monodisperse:
     def tag_plot(self, Min, Max, incr, mode='count', show=True, save=False, filename=None):
         if (mode == 'rate'):
             (swells, data) = self.tag_rate(Min, Max, incr)
-            plt.title("Particle Tag Rate")
         elif (mode == 'curve'):
             (swells, data) = self.tag_curve(Min, Max, incr)
-            plt.title("Particle Tag Curvature")
         else:
-            (swells, data) = self.tag_count(Min, Max, incr)
-            plt.title("Particles Tagged")    
+            (swells, data) = self.tag_count(Min, Max, incr)   
         plt.plot(swells, data)
         plt.xlim(Min, Max)
-        plt.xlabel("Swell")
+        plt.xlabel("Diameter")
+        plt.ylabel("Second Derivative of Tagged Particles")
         if save == True:
             plt.savefig("../Plots/" + filename)
         if show == True:
             plt.show()
         plt.close()
 
-    def find_memory(self, low, high, incr, mode='rate'):
-        if (mode == 'rate'):
-            data = self.tag_rate(low, high, incr)
-        if (mode == 'curve'):
-            data = self.tag_curve(low, high, incr)
-        else:
-            print("Memory recognititon method not understood.")
-        swell = np.asarray(data).take(max(data[1]))
-        return swell
-
+    def detect_memory(self, incr):
+        """
+        Tests the number of tagged particles over a range of swells, and 
+        returns a list of swells where memories are detected. 
+        
+        Parameters
+        ----------
+            incr: float
+                The increment between test swells. Determines accuracy of the
+                memory detection. 
+        Returns
+        -------
+            swells: a list of swells where a memory is located
+        """
+        high = self.percent_to_diameter(1.0)
+        low = self.percent_to_diameter(0.05)
+        incr = 1/(incr*self.N)
+        [swells, curve] = self.tag_curve(low, high, incr)
+        zeros = np.zeros(curve.shape)
+        pos = np.choose(curve < 0, [curve, zeros])
+        neg = np.choose(curve > 0, [curve, zeros])
+        indices = peak.indexes(pos, 0.5, incr)
+        nindices = peak.indexes(-neg, 0.5, incr)
+        matches = []
+        for i in indices:
+            for j in nindices:
+                desc = True
+                if (i < j):
+                    for k in range(i,j):
+                        if (curve[k] < curve[k+1]):
+                            desc = False
+                    if (desc):
+                        matches.append(i)
+        return swells[matches]
 
 class bidisperse:
-    def __init__(self, N, mod, areaFrac, seed=None):
+    def __init__(self, N, mod, area_fraction=None, seed=None):
         """
-        Create a particle suspension object.
+        Create a particle suspension object with two disctinct
+        particle sizes. 
 
         Parameters
         ----------
@@ -392,24 +426,20 @@ class bidisperse:
             mod: int
                 The inverse of the fraction of particles that are large.
                 If set to 1, all particles are large. If larger than N, 
-                no particles are large.  
+                no particles are large.
             seed: int, optional
                 Seed for initial particle placement randomiztion
         """
 
         self.N = N
         self.mod = mod
-        self.areaFrac = areaFrac
-        self.boxsize = self.__setBoxsize(N, areaFrac)
+        if (area_fraction == None):
+            self.boxsize=1.0
+        else:
+            self.boxsize = np.sqrt(N*np.pi/(4*area_fraction))
         self.centers = None
         self.reset(seed)
 
-    def __setBoxsize (self, N, areaFrac):
-        """ 
-        Length of the sides of the 2-D box determined by the number of particles
-        and the area fraction of the particles. Do not directly call this function 
-        """
-        return np.sqrt(N*np.pi/(4*areaFrac))
 
     def reset (self, seed=None):
         """ Randomly positions the particles inside the box.
@@ -426,12 +456,14 @@ class bidisperse:
     def tag(self, l_swell, sm_swell):
         """ 
         Get the center indices of the particles that overlap at a 
-        specific swell
+        specific swell. 
         
         Parameters
         ----------
-            swell: float
-                Swollen diameter length of the particles
+            l_swell: float
+                Swollen diameter length of the larger particles
+            sm_swell: float
+                Swollen diameter length of the smaller particles
 
         Returns
         -------
@@ -528,8 +560,10 @@ class bidisperse:
         
         Parameters
         ----------
-            swell: float
-                Swollen diameter length of the particles
+            l_swell: float
+                Swollen diameter length of the larger particles
+            sm_swell: float
+                Swollen diameter length of the smaller particles
             kick: float
                 The maximum distance particles are repelled
 
@@ -541,6 +575,7 @@ class bidisperse:
         cycles = 0
         [l_pairs, m_pairs, sm_pairs] = self.tag(l_swell, sm_swell)
         while ( (len(l_pairs) + len(m_pairs) + len(sm_pairs)) > 0 ):
+            print("%10d tagged\r" %(len(l_pairs)+len(m_pairs)+len(sm_pairs)), end="")
             if (len(l_pairs) > 0):
                 self.repel(l_pairs, l_swell, kick)
             if (len(sm_pairs) > 0):
@@ -552,28 +587,35 @@ class bidisperse:
             cycles += 1
         return cycles
 
-    def particle_plot(self, l_swell, sm_swell, extend=False, show=True, save=False, filename="ParticlePlot.png"):
+    def particle_plot(self, l_swell, sm_swell, extend=False, figsize=(7,7), show=True, filename=None):
         """
         Show plot of physical particle placement in 2-D box 
         
         Parameters
         ----------
-            swell: float
-                The diameter length at which the particles are illustrated
+            l_swell: float
+                Diameter of the larger particles
+            sm_swell: float
+                Diameter of the smaller particles
+            extend: bool, default False
+                Show wrap around the periodic boundary. "Original" particles appear darker.
+            figsize: tuple of ints, default (7,7)
+                Scales the size of the figure
             show: bool, default True
                 Display the plot after generation
-            save: bool, default True
-                Save the plot after generation (default False)
             filename: string, default None
-                Destination to save the plot if save is True 
+                Destination to save the plot. If None, the figure is not saved. 
         """
         i = 0
-        fig = plt.figure()
-        plt.title("Particle position")
+        fig = plt.figure(figsize=figsize)
         if (extend == True):
             plt.xlim(0, 2*self.boxsize)
             plt.ylim(0, 2*self.boxsize)
+        else:
+            plt.xlim(0, self.boxsize)
+            plt.ylim(0, self.boxsize)
         ax = plt.gca()
+        ax.axis('off')
         for pair in self.centers:
             if (i % self.mod == 0):
                 r = l_swell/2
@@ -583,9 +625,9 @@ class bidisperse:
             if (extend == True) :
                 ax.add_artist(Circle(xy=(pair + [0, self.boxsize]), radius = r, alpha=0.5))
                 ax.add_artist(Circle(xy=(pair + [self.boxsize, 0]), radius = r,alpha=0.5))
-                ax.add_artist(Circle(xy=(pair + [self.boxsize, self.boxsize]), radius = r,alpha=0.5))
+                ax.add_artist(Circle(xy=(pair + [self.boxsize, self.boxsize]), radius = r,alpha=0.2))
             i += 1
-        
+        fig.tight_layout()
         if save == True:
             plt.savefig("../Plots/" + filename)
         if show == True:
@@ -594,12 +636,40 @@ class bidisperse:
 
 
 
-def save(system, swell):
-    f = open("../ParticleCache/%s_%s_%dp_%0.5fs.p" %(time.strftime("%d-%m-%Y"), time.strftime("%H.%M.%S"), system.N, swell), "wb")
+def save(system):
+    """
+    Pickles the current particle suspension. Filename is generated
+    from the day, time, number of particles, and if it's a bidisperse
+    system, also the mod number. 
+
+    Returns
+    -------
+        cycles: int
+            The number of tagging and repelling cycles until no particles overlapped
+    """
+    if (isinstance(system, monodisperse)):
+        f = open("../ParticleCache/monodipsere_%s_%s_%dparticles.p" 
+            %(time.strftime("%d-%m-%Y"), time.strftime("%H.%M.%S"), system.N), "wb")
+    elif (isinstance(system, bidisperse)):
+        f = open("../ParticleCache/bidisperse_%s_%s_%dparticles_%dmod.p" 
+            %(time.strftime("%d-%m-%Y"), time.strftime("%H.%M.%S"), system.N, system.mod), "wb")
     pickle.dump(system, f)
     f.close()
 
 def load(filename):
+    """
+    Loads a pickled file from the "ParticleCache" folder in the 
+    parent directory of the current directory.
+    
+    Parameters
+    ----------
+        filename: string
+            The name of the pickled particle file
+
+    Returns
+    -------
+        The particle suspension
+    """
     f = open("../ParticleCache/" + filename, "rb")
     x = pickle.load(f)
     f.close()

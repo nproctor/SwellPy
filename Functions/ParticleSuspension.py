@@ -33,9 +33,33 @@ class monodisperse:
         self.reset(seed)
 
     def percent_to_diameter(self, percent):
+        """
+        Calculates the swell diameter that corresponds to
+        the given area fraction.
+
+        Parameters
+        ----------
+            percent: float
+                The area fraction of interest
+        Returns
+        -------
+            The corresponding particle diameter
+        """
         return np.sqrt((percent* self.boxsize**2)/(np.pi*self.N))*2
 
     def diameter_to_percent(self, diameter):
+        """
+        Calculates the area fraction that corresponds to a 
+        given swell diameter
+
+        Parameters
+        ----------
+            diameter: float
+                The swell diamter of the particles
+        Returns
+        -------
+            The corresponding area fraction
+        """
         return (self.N*np.pi*(diameter/2)**2)/(self.boxsize**2)
 
 
@@ -66,7 +90,7 @@ class monodisperse:
         if not isinstance(centers, np.ndarray):
             centers = np.array(centers, dtype=np.float64)
         if (centers.shape) != (self.N, 2):
-            raise TypeError("Centers must be a (%s, 2) array-like object" %self.N)
+            raise TypeError("Error: Centers must be a (%s, 2) array-like object" %self.N)
         if ( (centers < 0).any() or (centers > self.boxsize).any() ):
             print("Warning: centers out of bounds (0, %0.2f)" %self.boxsize)
         self.centers = centers
@@ -244,7 +268,7 @@ class monodisperse:
             plt.ylim(0, self.boxsize)
         fig.tight_layout()
         if filename != None:
-            plt.savefig("../Plots/" + filename)
+            plt.savefig(filename)
         if show == True:
             plt.show()
         plt.close()
@@ -373,7 +397,7 @@ class monodisperse:
         plt.xlabel("Diameter")
         plt.ylabel("Second Derivative of Tagged Particles")
         if save == True:
-            plt.savefig("../Plots/" + filename)
+            plt.savefig(filename)
         if show == True:
             plt.show()
         plt.close()
@@ -629,7 +653,7 @@ class bidisperse:
             i += 1
         fig.tight_layout()
         if save == True:
-            plt.savefig("../Plots/" + filename)
+            plt.savefig(filename)
         if show == True:
             plt.show()
         plt.close()
@@ -648,18 +672,17 @@ def save(system):
             The number of tagging and repelling cycles until no particles overlapped
     """
     if (isinstance(system, monodisperse)):
-        f = open("../ParticleCache/monodipsere_%s_%s_%dparticles.p" 
+        f = open("monodipsere_%s_%s_%dparticles.p" 
             %(time.strftime("%d-%m-%Y"), time.strftime("%H.%M.%S"), system.N), "wb")
     elif (isinstance(system, bidisperse)):
-        f = open("../ParticleCache/bidisperse_%s_%s_%dparticles_%dmod.p" 
+        f = open("bidisperse_%s_%s_%dparticles_%dmod.p" 
             %(time.strftime("%d-%m-%Y"), time.strftime("%H.%M.%S"), system.N, system.mod), "wb")
     pickle.dump(system, f)
     f.close()
 
 def load(filename):
     """
-    Loads a pickled file from the "ParticleCache" folder in the 
-    parent directory of the current directory.
+    Loads a pickled file from the current directory
     
     Parameters
     ----------
@@ -670,7 +693,7 @@ def load(filename):
     -------
         The particle suspension
     """
-    f = open("../ParticleCache/" + filename, "rb")
+    f = open(filename, "rb")
     x = pickle.load(f)
     f.close()
     return x

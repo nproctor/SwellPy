@@ -6,8 +6,6 @@ from peakutils import peak
 import crepel
 import time
 import pickle
-import os
-
 
 
 class monodisperse:
@@ -28,7 +26,7 @@ class monodisperse:
         if (area_fraction == None):
             self.boxsize = 1.0
         else:
-            np.sqrt(N*np.pi/(4*area_fraction))
+            self.boxsize = np.sqrt(N*np.pi/(4*area_fraction))
         self.centers = None
         self.reset(seed)
 
@@ -385,7 +383,10 @@ class monodisperse:
         curve = ( tag_rate[1:] - tag_rate[:-1] ) / incr
         return swells[:-1]+incr/2, curve
 
-    def tag_plot(self, Min, Max, incr, mode='count', show=True, save=False, filename=None):
+    def tag_plot(self, mode='count', show=True, save=False, filename=None):
+        Min = self.percent_to_diameter(0.1)
+        Max = self.percent_to_diameter(1)
+        incr = 1/(self.N*5)
         if (mode == 'rate'):
             (swells, data) = self.tag_rate(Min, Max, incr)
         elif (mode == 'curve'):

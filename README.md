@@ -3,11 +3,11 @@
 **********************************
 Dependencies
 **********************************
-Python 3.6
-Scipy 0.18
-Numpy 1.11
-PeakUtils 1.1
-Matplotlib 2.0
+Python 3.6,
+Scipy 0.18,
+Numpy 1.11,
+PeakUtils 1.1,
+Matplotlib 2.0,
 
 **********************************
 crepel.c

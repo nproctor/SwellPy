@@ -1,5 +1,0 @@
-# Params for Curvature Noise (AF: 0.2, Incr: 0.01)
-# MeanParams SDParams
-6647.52333 2035.64386
-  -0.58905   -0.66163
-  10.13111    1.70390

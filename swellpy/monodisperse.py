@@ -4,7 +4,7 @@ from matplotlib.patches import Circle
 from scipy.spatial import cKDTree
 from peakutils import peak
 import crepel
-from .particlesuspension import *
+from .particle_suspension import *
 
 
 class Monodisperse(ParticleSuspension):

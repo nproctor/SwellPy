@@ -1,11 +1,12 @@
-from distutils.core import setup
+from setuptools import setup
 from Cython.Build import cythonize
 
 setup(
     name='SwellPy',
     version='0.1',
     setup_require=[
-        'cython>=0.26'
+        'cython>=0.26',
+        'nose>=1.0'
     ],
     install_requires=[
         'scipy>=0.18',
@@ -14,6 +15,10 @@ setup(
         'matplotlib>=2.0'
     ],
     packages=['swellpy'],
-    ext_module = cythonize("*/*.pyx")
+    ext_module = cythonize("*/*.pyx"),
+    test_suite='nose.collector',
+    tests_require=[
+        'nose'
+    ]
     
 )

@@ -15,18 +15,23 @@ No Memory|Partial Memory|Full Memory
 ![alt text](https://nproctor.github.io/img/noMem.png)|![alt text](https://nproctor.github.io/img/partialMem.png)|![alt text](https://nproctor.github.io/img/fullMem.png)
 
 
-
-
 ### Installing
 ***
-From the application directory, run  
+To install the package from the application directory, run:   
 `pip install -e .`  
-to install the swellpy package. It can then be imported into a python file using  
+
+If pip fails to install the package due to lapack/blas issues, the easiest way to
+solve this issue is to install scipy with anaconda:  
+`conda install scipy>=0.18`
+
+See more on this issue at https://www.scipy.org/install.html
+
+SwellPy can then be imported into a python file using:  
 `import swellpy`
 
 ### Testing
 ***
-To run tests, from the command line run  
+To run tests, from the command line run:  
 `python setup.py test`
 
 

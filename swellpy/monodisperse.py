@@ -88,18 +88,6 @@ class Monodisperse(ParticleSuspension):
         crepel.iterate(centers, pairs[:,0], -kick, pairs.shape[0])
         # Note: this may kick out of bounds -- be sure to wrap!
 
-    def wrap(self):
-        """
-        Applied periodic boundaries to any particles outside of the box. 
-        Does not work if particles are outside of the box more than 1x
-        the length of the box. 
-        """
-        centers = self.centers
-        boxsize = self.boxsize
-        # Wrap if outside of boundaries
-        np.putmask(centers, centers>=boxsize, centers-boxsize)
-        np.putmask(centers, centers<0, centers+boxsize)
-
 
     def train(self, area_frac, kick, cycles=np.inf):
         """

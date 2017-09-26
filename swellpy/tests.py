@@ -42,14 +42,14 @@ class Test_Monodisperse(unittest.TestCase):
         x = Monodisperse(3, boxsize = 1.0)
         before = x.centers
         with self.assertRaises(TypeError):
-            x.set_centers([0,2,3,4,4,5,6]) # Attempt bad center reassignment (message will print)
+            x.set_centers([0,2,3,4,4,5,6]) # Attempt bad center type reassignment
         after = x.centers
         self.assertTrue( before is after )
 
     def test5_setOutOfBoundsCenters(self):
-        x = Monodisperse(2)
-        x.set_centers([[0,1],[-10,12]])
-        self.assertTrue( (x.centers == [[0,1],[-10,12]]).all() ) # Out of bounds reassignment (message will print)
+        x = Monodisperse(2, 1.0)
+        with self.assertRaises(RuntimeError):
+            x.set_centers([[0,5],[-1, -10]]) # Out of bounds reassignment
 
     def test6_setCenters(self):
         x = Monodisperse(2)
@@ -70,7 +70,7 @@ class Test_Monodisperse(unittest.TestCase):
         tagged = x.tag(0.2)
         self.assertTrue( (tagged == [[0,1]]).all() )
 
-    def test9_directTag2(self):
+    def test9_directTagMany(self):
         x = Monodisperse(4, boxsize = 1.0)
         x.set_centers([[0,0], [0,0.9], [0.9, 0], [0.9,0.9]])
         tagged = x.tag(0.1)
@@ -86,7 +86,9 @@ class Test_Monodisperse(unittest.TestCase):
 
     def test11_wrap(self):
         x = Monodisperse(2, boxsize = 1.0)
-        x.set_centers([[-0.1, 0], [0, x.boxsize + 0.1]]) # Will print warning message
+        x.set_centers([[0, 0], [0, x.boxsize-0.1]])
+        x.centers[0][0] = -0.1
+        x.centers[1][1] = x.boxsize + 0.1
         x.wrap()
         npt.assert_array_almost_equal(x.centers[0], [x.boxsize - 0.1, 0])
         npt.assert_array_almost_equal(x.centers[1], [0, 0.1])

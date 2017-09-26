@@ -29,6 +29,18 @@ class ParticleSuspension():
             np.random.seed(seed)
         self.centers = np.random.uniform(0, self.boxsize, (self.N, 2))
     
+    def wrap(self):
+        """
+        Applied periodic boundaries to any particles outside of the box. 
+        Does not work if particles are outside of the box more than 1x
+        the length of the box. 
+        """
+        centers = self.centers
+        boxsize = self.boxsize
+        # Wrap if outside of boundaries
+        np.putmask(centers, centers>=boxsize, centers-boxsize)
+        np.putmask(centers, centers<0, centers+boxsize)
+    
     def set_centers(self, centers):
         """ Manually set the position of particles in the box. Raises an exception if 
         centers are not of proper format. Raises a warning if the particles
@@ -45,7 +57,7 @@ class ParticleSuspension():
         if (centers.shape) != (self.N, 2):
             raise TypeError("Error: Centers must be a (%s, 2) array-like object" %self.N)
         if ( (centers < 0).any() or (centers > self.boxsize).any() ):
-            print("Warning: centers out of bounds (0, %0.2f)" %self.boxsize)
+            raise RuntimeError("Warning: centers out of bounds (0, %0.2f)" %self.boxsize)
         self.centers = centers
 
 def save(system, filename = None):

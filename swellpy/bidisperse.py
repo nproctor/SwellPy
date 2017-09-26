@@ -8,7 +8,7 @@ from .particle_suspension import *
 
 
 class Bidisperse(ParticleSuspension):
-    def __init__(self, N, mod, area_fraction=None, seed=None):
+    def __init__(self, N, mod, seed=None):
         """
         Create a particle suspension object with two disctinct
         particle sizes. 
@@ -25,14 +25,7 @@ class Bidisperse(ParticleSuspension):
                 Seed for initial particle placement randomiztion
         """
         super(Bidisperse, self).__init__(N)
-        self.name = "Bidisperse"
         self.mod = mod
-        if (area_fraction == None):
-            self.boxsize=1.0
-        else:
-            self.boxsize = np.sqrt(N*np.pi/(4*area_fraction))
-        self.centers = None
-        self.reset(seed)
 
 
     def tag(self, l_swell, sm_swell):
@@ -122,18 +115,7 @@ class Bidisperse(ParticleSuspension):
         crepel.iterate(centers, pairs[:,1], kick, pairs.shape[0])
         crepel.iterate(centers, pairs[:,0], -kick, pairs.shape[0])
         # Note: this may kick out of bounds -- be sure to wrap!
-
-    def wrap(self):
-        """
-        Applied periodic boundaries to any particles outside of the box. 
-        Does not work if particles are outside of the box more than 1x
-        the length of the box. 
-        """
-        centers = self.centers
-        boxsize = self.boxsize
-        # Wrap if outside of boundaries
-        np.putmask(centers, centers>=boxsize, centers-boxsize)
-        np.putmask(centers, centers<0, centers+boxsize)
+        
 
     def train(self, l_swell, sm_swell, kick):
         """

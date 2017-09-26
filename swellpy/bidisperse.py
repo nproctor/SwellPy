@@ -25,6 +25,7 @@ class Bidisperse(ParticleSuspension):
                 Seed for initial particle placement randomiztion
         """
         super(Bidisperse, self).__init__(N)
+        self.name = "Bidisperse"
         self.mod = mod
 
 

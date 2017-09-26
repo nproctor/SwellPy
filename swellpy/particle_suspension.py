@@ -9,6 +9,7 @@ import crepel
 
 class ParticleSuspension():
     def __init__(self, N, boxsize=None, seed=None):
+        self.__name = "ParticleSuspension"
         self.N = N
         if (boxsize):
             self.boxsize = boxsize
@@ -16,6 +17,7 @@ class ParticleSuspension():
             self.boxsize = np.sqrt(N*np.pi/(4 * 0.2))
         self.centers = None
         self.reset(seed)
+    
 
     def reset(self, seed=None):
         """ Randomly positions the particles inside the box.

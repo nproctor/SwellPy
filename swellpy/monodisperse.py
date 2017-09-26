@@ -20,6 +20,7 @@ class Monodisperse(ParticleSuspension):
                 Seed for initial particle placement randomiztion
         """
         super(Monodisperse, self).__init__(N, boxsize, seed)
+        self.__name = "Monodisperse"
     
     def af_to_swell(self, area_frac):
         return 2 * np.sqrt(area_frac * self.boxsize**2 / (self.N * np.pi))

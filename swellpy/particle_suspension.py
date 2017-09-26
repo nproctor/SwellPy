@@ -8,10 +8,14 @@ import pickle
 import crepel
 
 class ParticleSuspension():
-    def __init__(self, N):
+    def __init__(self, N, boxsize=None, seed=None):
         self.N = N
+        if (boxsize):
+            self.boxsize = boxsize
+        else:
+            self.boxsize = np.sqrt(N*np.pi/(4 * 0.2))
         self.centers = None
-        self.name = "ParticleSuspension"
+        self.reset(seed)
 
     def reset(self, seed=None):
         """ Randomly positions the particles inside the box.

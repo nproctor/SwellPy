@@ -8,7 +8,7 @@ from .particle_suspension import *
 
 
 class Monodisperse(ParticleSuspension):
-    def __init__(self, N, area_fraction=None, seed=None):
+    def __init__(self, N, boxsize=None, seed=None):
         """
         Create a particle suspension object.
 
@@ -16,50 +16,13 @@ class Monodisperse(ParticleSuspension):
         ----------
             N: int
                 The number of particles in the system
-            areaFrac: float
-                Total particle area to box area ratio at swell of 1.0 (original radius)
             seed: int, optional
                 Seed for initial particle placement randomiztion
         """
-        super().__init__(N)
-        self.name = "Monodisperse"
-        if (area_fraction == None):
-            self.boxsize = 1.0
-        else:
-            self.boxsize = np.sqrt(N*np.pi/(4*area_fraction))
-        self.centers = None
-        self.reset(seed)
-
-    def percent_to_diameter(self, percent):
-        """
-        Calculates the swell diameter that corresponds to
-        the given area fraction.
-
-        Parameters
-        ----------
-            percent: float
-                The area fraction of interest
-        Returns
-        -------
-            The corresponding particle diameter
-        """
-        return np.sqrt((percent* self.boxsize**2)/(np.pi*self.N))*2
-
-    def diameter_to_percent(self, diameter):
-        """
-        Calculates the area fraction that corresponds to a 
-        given swell diameter
-
-        Parameters
-        ----------
-            diameter: float
-                The swell diamter of the particles
-        Returns
-        -------
-            The corresponding area fraction
-        """
-        return (self.N*np.pi*(diameter/2)**2)/(self.boxsize**2)
-
+        super(Monodisperse, self).__init__(N, boxsize, seed)
+    
+    def af_to_swell(self, area_frac):
+        return 2 * np.sqrt(area_frac * self.boxsize**2 / (self.N * np.pi))
 
     def tag(self, swell):
         """ 
@@ -138,26 +101,29 @@ class Monodisperse(ParticleSuspension):
         np.putmask(centers, centers<0, centers+boxsize)
 
 
-    def train(self, swell, kick):
+    def train(self, area_frac, kick, cycles=np.inf):
         """
         Repeatedly tags and repels overlapping particles until particles
         no longer touch
         
         Parameters
         ----------
-            swell: float
-                Swollen diameter length of the particles
+            area_frac: float
+                Total area of the swollen particles relative to the boxsize
             kick: float
                 The maximum distance particles are repelled
+            cycles: int
+                The maximum number of cycles defaults to infinite
 
         Returns
         -------
             cycles: int
                 The number of tagging and repelling cycles until no particles overlapped
         """
-        cycles = 0
+        count = 0
+        swell = self.af_to_swell(area_frac)
         pairs = self.tag(swell)
-        while ( len(pairs) > 0 ):
+        while (cycles > count and (len(pairs) > 0) ):
             self.repel(pairs, swell, kick)
             self.wrap()
             pairs = self.tag(swell)
@@ -165,36 +131,7 @@ class Monodisperse(ParticleSuspension):
         return cycles
 
 
-    def train_for(self, swell, kick, cycles):
-        """ 
-        Tag and repel overlapping particles for a specific number of cycles
-
-        Parameters 
-        ----------
-            swell: float
-                Swollen diameter length of the particles
-            kick: float
-                The maximum distance particles are repelled
-            cycles: int
-                The max number of cycles particles are tagged and repelled
-        
-        Returns: 
-        -------
-            trueCycles: int
-                The actual number of cycles the particles are tagged and repelled. 
-                Will differ from parameter "cycles" if particles no longer overlapped in a fewer number
-                of cycles.
-        """          
-        trueCycles = 0
-        pairs = self.tag(swell)
-        while (trueCycles < cycles) and ( len(pairs) > 0 ):
-            self.repel(pairs, swell, kick)
-            self.wrap()
-            pairs = self.tag(swell)
-            trueCycles += 1
-        return trueCycles
-
-    def particle_plot(self, swell, show=True, extend = False, figsize = (7,7), filename=None):
+    def particle_plot(self, area_frac, show=True, extend = False, figsize = (7,7), filename=None):
         """
         Show plot of physical particle placement in 2-D box 
         
@@ -211,20 +148,22 @@ class Monodisperse(ParticleSuspension):
             filename: string, default None
                 Destination to save the plot. If None, the figure is not saved. 
         """
+        radius = self.af_to_swell(area_frac)
+        boxsize = self.boxsize
         fig = plt.figure(figsize = figsize)
         plt.axis('off')
         ax = plt.gca()
         for pair in self.centers:
-            ax.add_artist(Circle(xy=(pair), radius = swell/2))
+            ax.add_artist(Circle(xy=(pair), radius = radius))
             if (extend):
-                ax.add_artist(Circle(xy=(pair + [0, self.boxsize]), radius = swell/2, alpha=0.3))
-                ax.add_artist(Circle(xy=(pair) + [self.boxsize, 0], radius = swell/2, alpha=0.3))
-                ax.add_artist(Circle(xy=(pair) + [self.boxsize, self.boxsize], radius = swell/2, alpha=0.3))
+                ax.add_artist(Circle(xy=(pair) + [0, boxsize], radius = radius, alpha=0.3))
+                ax.add_artist(Circle(xy=(pair) + [boxsize, 0], radius = radius, alpha=0.3))
+                ax.add_artist(Circle(xy=(pair) + [boxsize, boxsize], radius = radius, alpha=0.3))
         if (extend):
-            plt.xlim(0, 2*self.boxsize)
-            plt.ylim(0, 2*self.boxsize)
-            plt.plot([0,self.boxsize*2], [self.boxsize, self.boxsize], ls = ':', color = '#333333')
-            plt.plot([self.boxsize,self.boxsize], [0, self.boxsize*2], ls = ':', color = '#333333')
+            plt.xlim(0, 2*boxsize)
+            plt.ylim(0, 2*boxsize)
+            plt.plot([0, boxsize*2], [boxsize, boxsize], ls = ':', color = '#333333')
+            plt.plot([boxsize, boxsize], [0, boxsize*2], ls = ':', color = '#333333')
 
         else:
             plt.xlim(0, self.boxsize)
@@ -280,7 +219,8 @@ class Monodisperse(ParticleSuspension):
         """
         swell = Min
         swells = []
-        while (swell <= Max):
+        epsilon = 0.0000001
+        while (swell <= Max + epsilon):
             swells.append(swell)
             swell += incr
         swells = np.array(swells)

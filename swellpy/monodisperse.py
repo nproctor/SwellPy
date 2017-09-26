@@ -20,12 +20,17 @@ class Monodisperse(ParticleSuspension):
                 Seed for initial particle placement randomiztion
         """
         super(Monodisperse, self).__init__(N, boxsize, seed)
-        self.__name = "Monodisperse"
+        self._name = "Monodisperse"
     
-    def af_to_swell(self, area_frac):
-        return 2 * np.sqrt(area_frac * self.boxsize**2 / (self.N * np.pi))
+    def equiv_swell(self, area_frac):
+        af = np.array(area_frac, ndmin=1)
+        return 2 * np.sqrt(af * self.boxsize**2 / (self.N * np.pi))
 
-    def tag(self, swell):
+    def equiv_area_frac(self, swell):
+        d = np.array(swell, ndmin=1)
+        return (d / 2)**2 * (self.N * np.pi) / self.boxsize**2
+
+    def _tag(self, swell):
         """ 
         Get the center indices of the particles that overlap at a 
         specific swell
@@ -49,6 +54,14 @@ class Monodisperse(ParticleSuspension):
         pairs = tree.query_pairs(swell)
         pairs = np.array(list(pairs), dtype=np.int64)
         return pairs
+    
+    def tag(self, area_frac):
+        swell = self.equiv_swell(area_frac)
+        return self._tag(swell)
+    
+    def repel(self, pairs, area_frac, kick):
+        swell = self.equiv_swell(area_frac)
+        self._repel(pairs, swell, kick)
 
 
     def train(self, area_frac, kick, cycles=np.inf):
@@ -61,9 +74,10 @@ class Monodisperse(ParticleSuspension):
             area_frac: float
                 Total area of the swollen particles relative to the boxsize
             kick: float
-                The maximum distance particles are repelled
+                The maximum distance particles are repelled relative to the diameter
+                of the particles (i.e. a kick of 0.6 is a 60% particle diameter)
             cycles: int
-                The maximum number of cycles defaults to infinite
+                The upper bound on the number of cycles. Defaults to infinite.
 
         Returns
         -------
@@ -71,14 +85,14 @@ class Monodisperse(ParticleSuspension):
                 The number of tagging and repelling cycles until no particles overlapped
         """
         count = 0
-        swell = self.af_to_swell(area_frac)
-        pairs = self.tag(swell)
+        swell = self.equiv_swell(area_frac)
+        pairs = self._tag(swell)
         while (cycles > count and (len(pairs) > 0) ):
-            self.repel(pairs, swell, kick)
+            self._repel(pairs, swell, kick)
             self.wrap()
-            pairs = self.tag(swell)
-            cycles += 1
-        return cycles
+            pairs = self._tag(swell)
+            count += 1
+        return count
 
 
     def particle_plot(self, area_frac, show=True, extend = False, figsize = (7,7), filename=None):
@@ -98,7 +112,7 @@ class Monodisperse(ParticleSuspension):
             filename: string, default None
                 Destination to save the plot. If None, the figure is not saved. 
         """
-        radius = self.af_to_swell(area_frac)
+        radius = self.equiv_swell(area_frac)/2
         boxsize = self.boxsize
         fig = plt.figure(figsize = figsize)
         plt.axis('off')
@@ -106,9 +120,9 @@ class Monodisperse(ParticleSuspension):
         for pair in self.centers:
             ax.add_artist(Circle(xy=(pair), radius = radius))
             if (extend):
-                ax.add_artist(Circle(xy=(pair) + [0, boxsize], radius = radius, alpha=0.3))
-                ax.add_artist(Circle(xy=(pair) + [boxsize, 0], radius = radius, alpha=0.3))
-                ax.add_artist(Circle(xy=(pair) + [boxsize, boxsize], radius = radius, alpha=0.3))
+                ax.add_artist(Circle(xy=(pair) + [0, boxsize], radius = radius, alpha=0.5))
+                ax.add_artist(Circle(xy=(pair) + [boxsize, 0], radius = radius, alpha=0.5))
+                ax.add_artist(Circle(xy=(pair) + [boxsize, boxsize], radius = radius, alpha=0.5))
         if (extend):
             plt.xlim(0, 2*boxsize)
             plt.ylim(0, 2*boxsize)
@@ -116,8 +130,8 @@ class Monodisperse(ParticleSuspension):
             plt.plot([boxsize, boxsize], [0, boxsize*2], ls = ':', color = '#333333')
 
         else:
-            plt.xlim(0, self.boxsize)
-            plt.ylim(0, self.boxsize)
+            plt.xlim(0, boxsize)
+            plt.ylim(0, boxsize)
         fig.tight_layout()
         if filename != None:
             plt.savefig(filename)
@@ -125,9 +139,9 @@ class Monodisperse(ParticleSuspension):
             plt.show()
         plt.close()
 
-    def tag_count_at(self, swell):
+    def _tag_count(self, swells):
         """
-        Returns the number of tagged pairs at a specific swell diameter
+        Returns the number of tagged pairs at a specific area fraction
         
         Parameters
         ----------
@@ -139,46 +153,42 @@ class Monodisperse(ParticleSuspension):
             out: float
                 The fraction of overlapping particles
         """
-        pairs = self.tag(swell)
-        return len(np.unique(pairs)) / self.N
-
-    def tag_count(self, Min, Max, incr):
+        i = 0
+        tagged = np.zeros(swells.size)
+        while i < swells.size:
+            temp = self._tag(swells[i])
+            tagged[i] = np.unique(temp).size/ self.N
+            i += 1
+        return tagged
+    
+    def tag_count(self, area_frac):
         """
-        Return the fraction of particles that are tagged over a range of swell
-        diameters.
+        Returns the number of tagged pairs at a specific area fraction
         
         Parameters
         ----------
             swell: float
                 Swollen diameter length of the particles
-            Min: float
-                The minimum swollen diameter length
-            Max: float
-                The maximum swollen diameter length, inclusive
-            incr: float
-                The step size of diameter length when increasing from Min to Max
 
         Returns
         -------
-            swells: float array-like
-                The swollen diameter lengths at which the fraction of tagged particles
-                is recorded
-            tagged: float array-like
-                The fraction of particles tagged at each swell diameter in the return 
-                object "swells" respectively
+            out: float
+                The fraction of overlapping particles
         """
-        swell = Min
-        swells = []
-        epsilon = 0.0000001
-        while (swell <= Max + epsilon):
-            swells.append(swell)
-            swell += incr
-        swells = np.array(swells)
-        tagged = np.array(list(map(lambda x: self.tag_count_at(x), swells)))
-        return swells, tagged
+        swells = self.equiv_swell(area_frac)
+        return self._tag_count(swells)
+
+    def _extend_domain(self, domain):
+        first = 2 * domain[0] - domain[1]
+        if (first < 0):
+            first = 0
+        last = 2 * domain[-1] - domain[-2]
+        domain_extend = np.insert(domain, 0, first)
+        domain_extend = np.append(domain_extend, last)
+        return domain_extend
 
     
-    def tag_rate(self, Min, Max, incr):
+    def tag_rate(self, area_frac):
         """
         Returns the rate at which the fraction of particles overlap over a range of diameters.
         This is the same as measuring the fraction tagged at two swells and dividing by the difference
@@ -204,11 +214,12 @@ class Monodisperse(ParticleSuspension):
                 The rate of the fraction of tagged particles at each swell diameter 
                 in the return object "swells" respectively
         """
-        (swells, tagged) = self.tag_count(Min-incr/2, Max+incr/2, incr)
-        rate = ( tagged[1:] - tagged[:-1] ) / incr
-        return swells[:-1]+incr/2, rate
+        af_extended = self._extend_domain(area_frac)
+        tagged = self.tag_count(af_extended)
+        rate = (tagged[2:] - tagged[:-2])
+        return rate
 
-    def tag_curve(self, Min, Max, incr):
+    def tag_curve(self, area_frac):
         """
         Returns the curvature at which the fraction of particles overlap over a range of diameters.
         This is the same as measuring the rate at two swells and dividing by the difference
@@ -234,25 +245,17 @@ class Monodisperse(ParticleSuspension):
                 The change in the fraction of tagged particles at each swell diameter 
                 in the return object "swells" respectively
         """
-        (swells, tag_rate) = self.tag_rate(Min-incr/2, Max+incr/2, incr)
-        curve = ( tag_rate[1:] - tag_rate[:-1] ) / incr
-        return swells[:-1]+incr/2, curve
+        af_extended = self._extend_domain(area_frac)
+        rate = self.tag_rate(af_extended)
+        curve = (rate[2:] - rate[:-2])
+        return curve
 
-    def tag_plot(self, mode='count', show=True, save=False, filename=None):
-        Min = self.percent_to_diameter(0.1)
-        Max = self.percent_to_diameter(1)
-        incr = 1/(self.N*5)
-        if (mode == 'rate'):
-            (swells, data) = self.tag_rate(Min, Max, incr)
-        elif (mode == 'curve'):
-            (swells, data) = self.tag_curve(Min, Max, incr)
-        else:
-            (swells, data) = self.tag_count(Min, Max, incr)   
-        plt.plot(swells, data)
-        plt.xlim(Min, Max)
-        plt.xlabel("Diameter")
-        plt.ylabel("Second Derivative of Tagged Particles")
-        if save == True:
+    def tag_plot(self, func, show=True, filename=None):
+        area_frac = np.arange(0.1, 1.0, 0.01)
+        data = func(area_frac) 
+        plt.plot(area_frac, data)
+        plt.xlabel("Area Fraction")
+        if filename:
             plt.savefig(filename)
         if show == True:
             plt.show()

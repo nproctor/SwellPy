@@ -9,7 +9,7 @@ import crepel
 
 class ParticleSuspension():
     def __init__(self, N, boxsize=None, seed=None):
-        self.__name = "ParticleSuspension"
+        self._name = "ParticleSuspension"
         self.N = N
         if (boxsize):
             self.boxsize = boxsize
@@ -17,7 +17,6 @@ class ParticleSuspension():
             self.boxsize = np.sqrt(N*np.pi/(4 * 0.2))
         self.centers = None
         self.reset(seed)
-    
 
     def reset(self, seed=None):
         """ Randomly positions the particles inside the box.
@@ -39,9 +38,10 @@ class ParticleSuspension():
         boxsize = self.boxsize
         # Wrap if outside of boundaries
         np.putmask(centers, centers>=boxsize, centers % boxsize)
-        np.putmask(centers, centers<0, centers % boxsize) 
+        np.putmask(centers, centers<0, centers % boxsize)
+
     
-    def repel(self, pairs, swell, kick):
+    def _repel(self, pairs, swell, kick):
         """ 
         Repels particles that overlap
         
@@ -72,11 +72,11 @@ class ParticleSuspension():
         norm = np.linalg.norm(separation, axis=2).flatten()
         unitSeparation = (separation.T/norm).T
         # Generate kick
-        kick = (unitSeparation.T * np.random.uniform(0, kick, unitSeparation.shape[0])).T
+        kick_arr = (unitSeparation.T * np.random.uniform(0, kick * swell, unitSeparation.shape[0])).T
         # Since the separation is with respect to the 'first' particle in a pair, 
         # apply positive kick to the 'second' particle and negative kick to the first
-        crepel.iterate(centers, pairs[:,1], kick, pairs.shape[0])
-        crepel.iterate(centers, pairs[:,0], -kick, pairs.shape[0])
+        crepel.iterate(centers, pairs[:,1], kick_arr, pairs.shape[0])
+        crepel.iterate(centers, pairs[:,0], -kick_arr, pairs.shape[0])
         # Note: this may kick out of bounds -- be sure to wrap!
     
     def set_centers(self, centers):

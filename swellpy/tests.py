@@ -86,12 +86,20 @@ class Test_Monodisperse(unittest.TestCase):
 
     def test11_wrap(self):
         x = Monodisperse(2, boxsize = 1.0)
-        x.set_centers([[0, 0], [0, x.boxsize-0.1]])
+        x.set_centers([[0, 0], [0, x.boxsize - 0.1]])
         x.centers[0][0] = -0.1
         x.centers[1][1] = x.boxsize + 0.1
         x.wrap()
         npt.assert_array_almost_equal(x.centers[0], [x.boxsize - 0.1, 0])
         npt.assert_array_almost_equal(x.centers[1], [0, 0.1])
+
+    def test12_wrapLarge(self):
+        x = Monodisperse(2, boxsize = 0.8)
+        x.centers[0][0] = -2.9
+        x.centers[1][1] = 2.9
+        x.wrap()
+        self.assertAlmostEqual(x.centers[0][0], 0.3)
+        self.assertAlmostEqual(x.centers[1][1], 0.5)
 
     def test12_normalRepel(self):
         x = Monodisperse(2, boxsize = 1.0)

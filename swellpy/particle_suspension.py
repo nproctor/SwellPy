@@ -32,14 +32,12 @@ class ParticleSuspension():
     def wrap(self):
         """
         Applied periodic boundaries to any particles outside of the box. 
-        Does not work if particles are outside of the box more than 1x
-        the length of the box. 
         """
         centers = self.centers
         boxsize = self.boxsize
         # Wrap if outside of boundaries
-        np.putmask(centers, centers>=boxsize, centers-boxsize)
-        np.putmask(centers, centers<0, centers+boxsize)
+        np.putmask(centers, centers>=boxsize, centers % boxsize)
+        np.putmask(centers, centers<0, centers % boxsize) 
     
     def set_centers(self, centers):
         """ Manually set the position of particles in the box. Raises an exception if 

@@ -4,9 +4,6 @@ from .monodisperse import *
 
 """
 Test cases for particle suspension classes
-
-NOTE:
-Three warning messages are expected to print. 
 """
 
 class Test_Monodisperse(unittest.TestCase):
@@ -223,6 +220,18 @@ class Test_Monodisperse(unittest.TestCase):
         curve = x.tag_curve(af)
         expected = np.array([2.0/3, (1-2.0/3) - 2.0/3, (1-2.0/3) - 2.0/3, -(1-2.0/3), -(1-2.0/3), 0.0])
         np.testing.assert_array_almost_equal(curve, expected)
+    
+    def test22_detection(self):
+        N = 2000
+        x = Monodisperse(N)
+        area_frac = np.arange(0.2, 0.7, 0.1)
+        for af in area_frac:
+            x.train(af, 0.1)
+            a = x.detect_memory(0.1, 1.0, 0.1)
+            print(af, end=" ")
+            print(a)
+            self.assertEqual(a.size, 1)
+            npt.assert_almost_equal(af, a[0])
 
 if __name__ == "__main__":
     unittest.main()

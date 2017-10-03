@@ -250,8 +250,16 @@ class Monodisperse(ParticleSuspension):
         curve = (rate[2:] - rate[:-2])
         return curve
 
-    def tag_plot(self, func, show=True, filename=None):
-        area_frac = np.arange(0.1, 1.0, 0.01)
+    def tag_plot(self, area_frac, mode='count', show=True, filename=None):
+        if (mode == 'count'):
+            plt.ylabel('Count')
+            func = self.tag_count
+        elif (mode == 'rate'):
+            plt.ylabel('Rate')
+            func = self.tag_rate
+        else:
+            plt.ylabel('Curve')
+            func = self.tag_curve
         data = func(area_frac) 
         plt.plot(area_frac, data)
         plt.xlabel("Area Fraction")
@@ -261,7 +269,7 @@ class Monodisperse(ParticleSuspension):
             plt.show()
         plt.close()
 
-    def detect_memory(self, incr):
+    def detect_memory(self, start, end, incr = 0.1):
         """
         Tests the number of tagged particles over a range of swells, and 
         returns a list of swells where memories are detected. 
@@ -275,10 +283,8 @@ class Monodisperse(ParticleSuspension):
         -------
             swells: a list of swells where a memory is located
         """
-        high = self.percent_to_diameter(1.0)
-        low = self.percent_to_diameter(0.05)
-        incr = 1/(incr*self.N)
-        [swells, curve] = self.tag_curve(low, high, incr)
+        area_frac = np.arange(start, end, incr)
+        curve= self.tag_curve(area_frac)
         zeros = np.zeros(curve.shape)
         pos = np.choose(curve < 0, [curve, zeros])
         neg = np.choose(curve > 0, [curve, zeros])
@@ -294,4 +300,4 @@ class Monodisperse(ParticleSuspension):
                             desc = False
                     if (desc):
                         matches.append(i)
-        return swells[matches]
+        return area_frac[matches]

@@ -9,11 +9,7 @@ import crepel
 
 class ParticleSuspension():
     def __init__(self, N, boxsize=None, seed=None):
-<<<<<<< HEAD
         self._name = "ParticleSuspension"
-=======
-        self.__name = "ParticleSuspension"
->>>>>>> Add name attribute
         self.N = N
         if (boxsize):
             self.boxsize = boxsize

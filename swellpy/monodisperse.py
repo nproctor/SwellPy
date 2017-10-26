@@ -12,21 +12,34 @@ class Monodisperse(ParticleSuspension):
         """
         Create a particle suspension object.
 
-        Parameters
-        ----------
-            N: int
-                The number of particles in the system
-            seed: int, optional
-                Seed for initial particle placement randomiztion
+        Args:
+            N (int): The number of particles in the system
+            seed (int): optional. Seed for initial particle placement randomiztion
         """
         super(Monodisperse, self).__init__(N, boxsize, seed)
         self._name = "Monodisperse"
     
     def equiv_swell(self, area_frac):
+        """
+        Finds the particle diameter that is equivalent to some area fraction.
+
+        Args:
+            area_frac (float): the area fraction of interest
+        Returns:
+            the equivalent diameter
+        """
         af = np.array(area_frac, ndmin=1)
         return 2 * np.sqrt(af * self.boxsize**2 / (self.N * np.pi))
 
     def equiv_area_frac(self, swell):
+        """
+        Finds the area fraction that is equivalent to some some swell diameter.
+
+        Args:
+            swell (float): the particle diameter of interest
+        Returns:
+            the equivalent area fraction
+        """
         d = np.array(swell, ndmin=1)
         return (d / 2)**2 * (self.N * np.pi) / self.boxsize**2
 
@@ -35,15 +48,11 @@ class Monodisperse(ParticleSuspension):
         Get the center indices of the particles that overlap at a 
         specific swell
         
-        Parameters
-        ----------
-            swell: float
-                Swollen diameter length of the particles
+        Parameters:
+            swell (float): diameter length of the particles
 
-        Returns
-        -------
-            pairs: (M x 2) numpy array 
-                An array object whose elements are pairs of int values that correspond
+        Returns:
+            (np.array): An array object whose elements are pairs of int values that correspond
                 the the center indices of overlapping particles
         """
 
@@ -56,33 +65,42 @@ class Monodisperse(ParticleSuspension):
         return pairs
     
     def tag(self, area_frac):
+        """
+        Finds all tagged particles at some area fraction.
+
+        Args:
+            area_frac (float): the area fraction of interest
+        Returns:
+            (np.array) An array object whose elements are pairs of int values that correspond
+                the the center indices of overlapping particles
+        """
         swell = self.equiv_swell(area_frac)
         return self._tag(swell)
     
     def repel(self, pairs, area_frac, kick):
+        """
+        Repels overlapping particles.
+
+        Args:
+            pairs (np.array): the pairs of overlapping particles
+            area_frac (float): the area fraction of interest
+            kick (float): the max kick value the particles are repelled as a percent of the
+                inverse diameter
+        """
         swell = self.equiv_swell(area_frac)
         self._repel(pairs, swell, kick)
 
-
     def train(self, area_frac, kick, cycles=np.inf):
         """
-        Repeatedly tags and repels overlapping particles until particles
-        no longer touch
+        Repeatedly tags and repels overlapping particles for some number of cycles
         
-        Parameters
-        ----------
-            area_frac: float
-                Total area of the swollen particles relative to the boxsize
-            kick: float
-                The maximum distance particles are repelled relative to the diameter
-                of the particles (i.e. a kick of 0.6 is a 60% particle diameter)
-            cycles: int
-                The upper bound on the number of cycles. Defaults to infinite.
+        Args:
+            area_frac (float): the area fraction to train on
+            kick (float): the maximum distance particles are repelled relative to inverse diameter
+            cycles (int): The upper bound on the number of cycles. Defaults to infinite.
 
-        Returns
-        -------
-            cycles: int
-                The number of tagging and repelling cycles until no particles overlapped
+        Returns:
+            (int) the number of tagging and repelling cycles until no particles overlapped
         """
         count = 0
         swell = self.equiv_swell(area_frac)
@@ -284,7 +302,7 @@ class Monodisperse(ParticleSuspension):
             swells: a list of swells where a memory is located
         """
         area_frac = np.arange(start, end, incr)
-        curve= self.tag_curve(area_frac)
+        curve = self.tag_curve(area_frac)
         zeros = np.zeros(curve.shape)
         pos = np.choose(curve < 0, [curve, zeros])
         neg = np.choose(curve > 0, [curve, zeros])

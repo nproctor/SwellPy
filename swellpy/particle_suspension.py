@@ -7,6 +7,26 @@ import time
 import pickle
 import crepel
 
+""" 
+This class defines features that are applicable to both Monodisperse
+and Bidisperse systems. It is not intended to be insantiated, but 
+can be. It is meant as a building block for other types of particle
+systems. Since this class consideres the size of particles to be 
+undefined, this system cannot be trained, tagged or repelled. It
+can set centers and wrap particles that are outside of the box. 
+These operations are all independent of particle
+size/shape. 
+
+Note there are some ``private'' methods that are implemented in this
+class that are used by child classes, but not by this class. 
+Calling these methods from the ParticleSuspension class will not be
+successful. 
+
+``Save'' and ``Load'' functionality is also defined in this file
+and is NOT a method of the ParticleSuspension class.
+
+"""
+
 class ParticleSuspension():
     def __init__(self, N, boxsize=None, seed=None):
         self._name = "ParticleSuspension"

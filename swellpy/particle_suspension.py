@@ -56,7 +56,6 @@ class ParticleSuspension():
             kick: float
                 The maximum distance particles are repelled 
         """
-        kick_adj = (kick*self.boxsize)
         if not isinstance(pairs, np.ndarray):
             pairs = np.array(pairs, dtype=np.int64)
         pairs = pairs.astype(np.int64) # This is necessary for the c extension
@@ -74,7 +73,7 @@ class ParticleSuspension():
         norm = np.linalg.norm(separation, axis=2).flatten()
         unitSeparation = (separation.T/norm).T
         # Generate kick
-        kick_arr = (unitSeparation.T * np.random.uniform(0, kick_adj, unitSeparation.shape[0])).T
+        kick_arr = (unitSeparation.T * np.random.uniform(0, kick, unitSeparation.shape[0])).T
         # Since the separation is with respect to the 'first' particle in a pair, 
         # apply positive kick to the 'second' particle and negative kick to the first
         crepel.iterate(centers, pairs[:,1], kick_arr, pairs.shape[0])

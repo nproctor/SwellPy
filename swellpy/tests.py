@@ -181,7 +181,7 @@ class Test_Monodisperse(unittest.TestCase):
         N = 100
         af = 0.7
         x = Monodisperse(N)
-        x.train(af, 0.001)
+        x.train(af, 0.05)
         npt.assert_array_almost_equal(x.tag_count(af), [0])
 
     def test18_tagCount(self):
@@ -226,7 +226,7 @@ class Test_Monodisperse(unittest.TestCase):
         x = Monodisperse(N)
         area_frac = np.arange(0.2, 0.7, 0.1)
         for af in area_frac:
-            x.train(af, 0.001)
+            x.train(af, 0.05)
             a = x.detect_memory(0.1, 1.0, 0.1)
             print(af, end=" ")
             print(a)

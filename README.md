@@ -17,6 +17,10 @@ No Memory|Partial Memory|Full Memory
 
 ### Installing
 ***
+This installation requires Anaconda3.
+Windows users will also need Visual Studio 2015 Build Tools available here:
+http://landinghub.visualstudio.com/visual-cpp-build-tools
+
 To install the package from the application directory, run:   
 `pip install -e .`  
 

@@ -4,10 +4,10 @@ from matplotlib.patches import Circle
 from scipy.spatial import cKDTree
 from peakutils import peak
 import crepel
-from .particle_suspension import *
+from .particle_system import ParticleSystem
 
 
-class Monodisperse(ParticleSuspension):
+class Monodisperse(ParticleSystem):
     def __init__(self, N, boxsize=None, seed=None):
         """
         Create a particle suspension object.

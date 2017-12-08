@@ -23,13 +23,13 @@ Calling these methods from the ParticleSuspension class will not be
 successful. 
 
 ``Save'' and ``Load'' functionality is also defined in this file
-and is NOT a method of the ParticleSuspension class.
+and is NOT a method of the ParticleSystem class.
 
 """
 
-class ParticleSuspension():
+class ParticleSystem():
     def __init__(self, N, boxsize=None, seed=None):
-        self._name = "ParticleSuspension"
+        self._name = "ParticleSystem"
         self.N = N
         if (boxsize):
             self.boxsize = boxsize

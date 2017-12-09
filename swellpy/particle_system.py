@@ -42,10 +42,8 @@ class ParticleSystem():
     def reset(self, seed=None):
         """ Randomly positions the particles inside the box.
         
-        Parameters
-        ----------
-            seed: int, optional
-                The seed to use for randomization 
+        Args:
+            seed (int): optional. The seed to use for randomization 
         """
         if (isinstance(seed, int)):
             np.random.seed(seed)
@@ -53,7 +51,7 @@ class ParticleSystem():
     
     def wrap(self):
         """
-        Applied periodic boundaries to any particles outside of the box. 
+        Applies periodic boundaries to any particles outside of the box. 
         """
         centers = self.centers
         boxsize = self.boxsize
@@ -66,15 +64,11 @@ class ParticleSystem():
         """ 
         Repels particles that overlap
         
-        Parameters
-        ----------
-            pairs: (M x 2) array-like object
-                An array object whose elements are pairs of int values that correspond
-                the the center indices of overlapping particles
-            swell: float
-                Swollen diameter length of the particles
-            kick: float
-                The maximum distance particles are repelled 
+        Args:
+            pairs ((M x 2) np.array): An array object whose elements are pairs of int values that 
+                correspond to the center indices of overlapping particles
+            swell (float): Swollen diameter length of the particles
+            kick (float): The maximum distance particles are repelled 
         """
         if not isinstance(pairs, np.ndarray):
             pairs = np.array(pairs, dtype=np.int64)
@@ -105,10 +99,8 @@ class ParticleSystem():
         centers are not of proper format. Raises a warning if the particles
         are placed outside of the box
         
-        Parameters
-        ----------
-            centers: (N x 2) array-like
-                An array or array-like object containing the x, y coordinates 
+        Args:
+            centers ((N x 2) array-like): An array or array-like object containing the x, y coordinates 
                 of each particle 
         """
         if not isinstance(centers, np.ndarray):
@@ -122,12 +114,10 @@ class ParticleSystem():
 def save(system, filename = None):
     """
     Pickles the current particle suspension. Filename is generated
-    from the day, time, number of particles.
+    from the day, time, number of particles, and type of system.
 
-    Returns
-    -------
-        cycles: int
-            The number of tagging and repelling cycles until no particles overlapped
+    Args:
+        filename (string): optional. The filename used to save the system.
     """
     if (filename):
         f = open(filename, "wb")
@@ -141,14 +131,11 @@ def load(filename):
     """
     Loads a pickled file from the current directory
     
-    Parameters
-    ----------
-        filename: string
-            The name of the pickled particle file
+    Args:
+        filename (string): The name of the pickled particle file
 
-    Returns
-    -------
-        The particle suspension
+    Return:
+        (ParticleSystem): The particle system
     """
     f = open(filename, "rb")
     x = pickle.load(f)

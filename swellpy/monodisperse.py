@@ -10,10 +10,9 @@ from .particle_system import ParticleSystem
 class Monodisperse(ParticleSystem):
     def __init__(self, N, boxsize=None, seed=None):
         """
-        Create a particle suspension object.
-
         Args:
             N (int): The number of particles in the system
+            boxsize (float): optional. Length of the sides of the box
             seed (int): optional. Seed for initial particle placement randomiztion
         """
         super(Monodisperse, self).__init__(N, boxsize, seed)
@@ -26,7 +25,7 @@ class Monodisperse(ParticleSystem):
         Args:
             area_frac (float): the area fraction of interest
         Returns:
-            the equivalent diameter
+            (float): the equivalent diameter
         """
         af = np.array(area_frac, ndmin=1)
         return 2 * np.sqrt(af * self.boxsize**2 / (self.N * np.pi))
@@ -38,7 +37,7 @@ class Monodisperse(ParticleSystem):
         Args:
             swell (float): the particle diameter of interest
         Returns:
-            the equivalent area fraction
+            (float) the equivalent area fraction
         """
         d = np.array(swell, ndmin=1)
         return (d / 2)**2 * (self.N * np.pi) / self.boxsize**2
@@ -71,7 +70,7 @@ class Monodisperse(ParticleSystem):
         Args:
             area_frac (float): the area fraction of interest
         Returns:
-            (np.array) An array object whose elements are pairs of int values that correspond
+            (np.array): An array object whose elements are pairs of int values that correspond
                 the the center indices of overlapping particles
         """
         swell = self.equiv_swell(area_frac)
@@ -96,7 +95,7 @@ class Monodisperse(ParticleSystem):
         
         Args:
             area_frac (float): the area fraction to train on
-            kick (float): the maximum distance particles are repelled relative to inverse diameter
+            kick (float): the maximum distance particles are repelled
             cycles (int): The upper bound on the number of cycles. Defaults to infinite.
 
         Returns:
@@ -117,18 +116,12 @@ class Monodisperse(ParticleSystem):
         """
         Show plot of physical particle placement in 2-D box 
         
-        Parameters
-        ----------
-            swell: float
-                The diameter length at which the particles are illustrated
-            show: bool, default True
-                Display the plot after generation
-            extend: bool, default False
-                Show wrap around the periodic boundary. "Original" particles appear darker.
-            figsize: tuple of ints, default (7,7)
-                Scales the size of the figure
-            filename: string, default None
-                Destination to save the plot. If None, the figure is not saved. 
+        Args:
+            area_frac (float): The diameter length at which the particles are illustrated
+            show (bool): default True. Display the plot after generation
+            extend (bool): default False. Show wrap around the periodic boundary.
+            figsize ((int,int)): default (7,7). Scales the size of the figure
+            filename (string): optional. Destination to save the plot. If None, the figure is not saved. 
         """
         radius = self.equiv_swell(area_frac)/2
         boxsize = self.boxsize
@@ -161,15 +154,11 @@ class Monodisperse(ParticleSystem):
         """
         Returns the number of tagged pairs at a specific area fraction
         
-        Parameters
-        ----------
-            swell: float
-                Swollen diameter length of the particles
+        Args:
+            swell (float): swollen diameter length of the particles
 
-        Returns
-        -------
-            out: float
-                The fraction of overlapping particles
+        Returns:
+            (float): The fraction of overlapping particles
         """
         i = 0
         tagged = np.zeros(swells.size)
@@ -183,20 +172,26 @@ class Monodisperse(ParticleSystem):
         """
         Returns the number of tagged pairs at a specific area fraction
         
-        Parameters
-        ----------
-            swell: float
-                Swollen diameter length of the particles
+        Args:
+            area_frac (float): area fraction of the particles
 
-        Returns
-        -------
-            out: float
-                The fraction of overlapping particles
+        Returns:
+            (float): The fraction of overlapping particles
         """
         swells = self.equiv_swell(area_frac)
         return self._tag_count(swells)
 
     def _extend_domain(self, domain):
+        """
+        Inserts a value at the beginning of the domain equal to the separation between the first
+        two values, and a value at the end of the array determined by the separation of the last
+        two values
+
+        Args:
+            domain (np.array): array to extend
+        Return:
+            (np.array) extended domain array
+        """
         first = 2 * domain[0] - domain[1]
         if (first < 0):
             first = 0
@@ -208,29 +203,15 @@ class Monodisperse(ParticleSystem):
     
     def tag_rate(self, area_frac):
         """
-        Returns the rate at which the fraction of particles overlap over a range of diameters.
-        This is the same as measuring the fraction tagged at two swells and dividing by the difference
-        of the swells. 
+        Returns the rate at which the fraction of particles overlap over a range of area fractions.
+        This is the same as measuring the fraction tagged at two area fractions and dividing by the 
+        difference of the area fractions. 
         
-        Parameters
-        ----------
-            swell: float
-                Swollen diameter length of the particles
-            Min: float
-                The minimum swollen diameter length
-            Max: float
-                The maximum swollen diameter length, inclusive
-            incr: float
-                The step size of diameter length when increasing from Min to Max
+        Args:
+            area_frac (np.array): array fractions to calculate tag rate at
 
-        Returns
-        -------
-            swells: float array-like
-                The swollen diameter lengths at which the rate of tagged particles
-                is recorded
-            rate: float array-like
-                The rate of the fraction of tagged particles at each swell diameter 
-                in the return object "swells" respectively
+        Returns:
+            (np.array): The rate of the fraction of tagged particles at area fraction in the input array
         """
         af_extended = self._extend_domain(area_frac)
         tagged = self.tag_count(af_extended)
@@ -239,29 +220,15 @@ class Monodisperse(ParticleSystem):
 
     def tag_curve(self, area_frac):
         """
-        Returns the curvature at which the fraction of particles overlap over a range of diameters.
-        This is the same as measuring the rate at two swells and dividing by the difference
-        of the swells. 
+        Returns the curvature at which the fraction of particles overlap over a range of area fractions.
+        This is the same as measuring the rate at two area fractions and dividing by the difference
+        of the area fractions. 
         
-        Parameters
-        ----------
-            swell: float
-                Swollen diameter length of the particles
-            Min: float
-                The minimum swollen diameter length
-            Max: float
-                The maximum swollen diameter length, inclusive
-            incr: float
-                The step size of diameter length when increasing from Min to Max
+        Args:
+            area_frac (np.array): array fractions to calculate the tag curvature at
 
-        Returns
-        -------
-            swells: float array-like
-                The swollen diameter lengths at which the fraction of tagged particles
-                is recorded
-            curve: float array-like
-                The change in the fraction of tagged particles at each swell diameter 
-                in the return object "swells" respectively
+        Returns:
+            (np.array): The curvature of the fraction of tagged particles at area fraction in the input array
         """
         af_extended = self._extend_domain(area_frac)
         rate = self.tag_rate(af_extended)
@@ -269,15 +236,24 @@ class Monodisperse(ParticleSystem):
         return curve
 
     def tag_plot(self, area_frac, mode='count', show=True, filename=None):
-        if (mode == 'count'):
-            plt.ylabel('Count')
-            func = self.tag_count
+        """
+        Generates a plot of the tag count, rate, or curvature
+
+        Args:
+            area_frac (np.array): list of the area fractions to use in the plot
+            mode ("count"|"rate"|"curve"): which information you want to plot. Defaults to "count".
+            show (bool): default True. Whether or not to show the plot
+            filename (string): default None. Filename to save the plot as. If filename=None, the plot is not saved.
+        """
+        if (mode == 'curve'):
+            plt.ylabel('Curve')
+            func = self.tag_curve
         elif (mode == 'rate'):
             plt.ylabel('Rate')
             func = self.tag_rate
         else:
-            plt.ylabel('Curve')
-            func = self.tag_curve
+            plt.ylabel('Count')
+            func = self.tag_count
         data = func(area_frac) 
         plt.plot(area_frac, data)
         plt.xlabel("Area Fraction")
@@ -287,19 +263,17 @@ class Monodisperse(ParticleSystem):
             plt.show()
         plt.close()
 
-    def detect_memory(self, start, end, incr = 0.1):
+    def detect_memory(self, start, end, incr):
         """
-        Tests the number of tagged particles over a range of swells, and 
-        returns a list of swells where memories are detected. 
+        Tests the number of tagged particles over a range of area fractions, and 
+        returns a list of area fractions where memories are detected. 
         
-        Parameters
-        ----------
-            incr: float
-                The increment between test swells. Determines accuracy of the
-                memory detection. 
-        Returns
-        -------
-            swells: a list of swells where a memory is located
+        Args:
+            start (float): The first area fraction in the detection
+            end (float): The last area fraction in the detection
+            incr (float): The increment between test swells. Determines accuracy of the memory detection. 
+        Returns:
+            (np.array): list of swells where a memory is located
         """
         area_frac = np.arange(start, end, incr)
         curve = self.tag_curve(area_frac)

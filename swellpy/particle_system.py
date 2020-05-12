@@ -60,14 +60,12 @@ class ParticleSystem():
         np.putmask(centers, centers<0, centers % boxsize)
 
     
-    def pos_noise(self, sigma)
-        """ 
-        adds noise to particle starting position in each cycle
+    def pos_noise(self, sigma):
+        """
+        adds random noise to the position of each particle, typically used before each swell
         
-        Args:
-            sigma (float): numerical value which corresponds to the standard deviation of the
-                gaussian used to generate the kick
-        
+        Args: 
+            sigma: standard deviation for the gaussian used to generate the kick
         """
         
         centers = self.centers

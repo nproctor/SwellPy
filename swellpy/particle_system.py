@@ -61,8 +61,7 @@ class ParticleSystem():
 
     
     def pos_noise(self, sigma)
-        """ 
-        adds noise to particle starting position in each cycle
+        """ adds noise to particle starting position in each cycle
         
         Args:
             sigma (float): numerical value which corresponds to the standard deviation of the

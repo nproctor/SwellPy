@@ -60,6 +60,19 @@ class ParticleSystem():
         np.putmask(centers, centers<0, centers % boxsize)
 
     
+    def pos_noise(self, sigma)
+        """ 
+        adds noise to particle starting position in each cycle
+        
+        Args:
+            sigma (float): numerical value which corresponds to the standard deviation of the
+                gaussian used to generate the kick
+        """
+        centers = self.centers
+        boxsize = self.boxsize
+        kicks = np.random.normal(0, sigma, size=shape(centers)
+        
+    
     def _repel(self, pairs, swell, kick):
         """ 
         Repels particles that overlap

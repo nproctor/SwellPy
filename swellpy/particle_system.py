@@ -67,7 +67,9 @@ class ParticleSystem():
         Args:
             sigma (float): numerical value which corresponds to the standard deviation of the
                 gaussian used to generate the kick
+        
         """
+        
         centers = self.centers
         boxsize = self.boxsize
         kicks = np.random.normal(0, sigma, size=shape(centers)

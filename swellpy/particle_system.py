@@ -70,7 +70,8 @@ class ParticleSystem():
         
         centers = self.centers
         boxsize = self.boxsize
-        kicks = np.random.normal(0, sigma, size=shape(centers)
+        kicks = np.random.normal(0, sigma, size=shape(centers))
+        self.centers = centers+kicks
         
     
     def _repel(self, pairs, swell, kick):

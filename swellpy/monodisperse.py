@@ -89,7 +89,7 @@ class Monodisperse(ParticleSystem):
         swell = self.equiv_swell(area_frac)
         self._repel(pairs, swell, kick)
 
-    def train(self, area_frac, kick, cycles=np.inf):
+    def train(self, area_frac, kick, cycles=np.inf, noise=0):
         """
         Repeatedly tags and repels overlapping particles for some number of cycles
         
@@ -106,6 +106,7 @@ class Monodisperse(ParticleSystem):
         pairs = self._tag(swell)
         while (cycles > count and (len(pairs) > 0) ):
             self._repel(pairs, swell, kick)
+            self.pos_noise(noise)
             self.wrap()
             pairs = self._tag(swell)
             count += 1

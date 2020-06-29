@@ -89,27 +89,37 @@ class Monodisperse(ParticleSystem):
         swell = self.equiv_swell(area_frac)
         self._repel(pairs, swell, kick)
 
-    def train(self, area_frac, kick, cycles=np.inf, noise=0):
+    def train(self, area_frac, kick, cycles=np.inf, noise=0, counter='kicks'):
         """
         Repeatedly tags and repels overlapping particles for some number of cycles
         
         Args:
-            area_frac (float): the area fraction to train on
+            area_frac (float or list): the area fraction to train on
             kick (float): the maximum distance particles are repelled
             cycles (int): The upper bound on the number of cycles. Defaults to infinite.
+            noise (float): Value for standard deviation of gaussian noise to particle 
+                position in each cycle, defaults to 0
+            count (kicks or list): whether to count a cycle as one kick or 
+                one run over the input list
 
         Returns:
             (int) the number of tagging and repelling cycles until no particles overlapped
         """
+        if not type(area_frac) == list:
+            area_frac = [area_frac]
+        
         count = 0
-        swell = self.equiv_swell(area_frac)
-        pairs = self._tag(swell)
-        while (cycles > count and (len(pairs) > 0) ):
-            self._repel(pairs, swell, kick)
-            self.pos_noise(noise)
-            self.wrap()
-            pairs = self._tag(swell)
-            count += 1
+        while (cycles > count):
+            for frac in area_frac:
+                swell = self.equiv_swell(frac)
+                pairs = self._tag(swell)
+                self._repel(pairs, swell, kick)
+                self.pos_noise(noise)
+                self.wrap()
+                if counter == 'kicks'
+                    count += 1
+            if counter == 'list':
+                count += 1
         return count
 
 

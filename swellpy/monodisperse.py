@@ -105,6 +105,10 @@ class Monodisperse(ParticleSystem):
         Returns:
             (int) the number of tagging and repelling cycles until no particles overlapped
         """
+        if not (counter=='kicks' or counter=='list'):
+            print('invalid ounter parameter, no training performed')
+            return
+        
         if not type(area_frac) == list:
             area_frac = [area_frac]
         

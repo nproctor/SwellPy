@@ -116,7 +116,7 @@ class Monodisperse(ParticleSystem):
                 self._repel(pairs, swell, kick)
                 self.pos_noise(noise)
                 self.wrap()
-                if counter == 'kicks'
+                if counter == 'kicks':
                     count += 1
             if counter == 'list':
                 count += 1

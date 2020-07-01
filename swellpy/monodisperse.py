@@ -118,7 +118,7 @@ class Monodisperse(ParticleSystem):
             for frac in area_frac:
                 swell = self.equiv_swell(frac)
                 pairs = self._tag(swell)
-                if len(a) == 0:
+                if len(pairs) == 0:
                     untagged += 1
                     break
                 self._repel(pairs, swell, kick)

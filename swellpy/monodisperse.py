@@ -120,7 +120,7 @@ class Monodisperse(ParticleSystem):
                 pairs = self._tag(swell)
                 if len(pairs) == 0:
                     untagged += 1
-                    break
+                    continue
                 self._repel(pairs, swell, kick)
                 self.pos_noise(noise)
                 self.wrap()

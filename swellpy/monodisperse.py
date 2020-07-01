@@ -106,7 +106,7 @@ class Monodisperse(ParticleSystem):
             (int) the number of tagging and repelling cycles until no particles overlapped
         """
         if not (counter=='kicks' or counter=='list'):
-            print('invalid ounter parameter, no training performed')
+            print('invalid counter parameter, no training performed')
             return
         
         if not type(area_frac) == list:
@@ -114,16 +114,24 @@ class Monodisperse(ParticleSystem):
         
         count = 0
         while (cycles > count):
+            untagged = 0
             for frac in area_frac:
                 swell = self.equiv_swell(frac)
                 pairs = self._tag(swell)
+                if len(a) == 0:
+                    untagged += 1
+                    break
                 self._repel(pairs, swell, kick)
                 self.pos_noise(noise)
                 self.wrap()
                 if counter == 'kicks':
                     count += 1
+                    if count >= cycles:
+                        break
             if counter == 'list':
                 count += 1
+            if (untagged == len(area_frac) and noise == 0):
+                break
         return count
 
 

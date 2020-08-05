@@ -60,18 +60,37 @@ class ParticleSystem():
         np.putmask(centers, centers<0, centers % boxsize)
 
     
-    def pos_noise(self, sigma):
+    def pos_noise(self, noise_type, noise_val):
         """
         adds random noise to the position of each particle, typically used before each swell
         
         Args: 
-            sigma: standard deviation for the gaussian used to generate the kick
+            noise_type: none for no noise
+                        gauss for a gaussian distribution about the particle position,
+                        drop for reset fraction of particles each cycle
+            noise_val:  standard deviation for gauss
+                        fraction of active particles for drop
         """
-        
-        centers = self.centers
-        boxsize = self.boxsize
-        kicks = np.random.normal(0, sigma, size=np.shape(centers))
-        self.centers = centers+kicks
+        if noise_type=='gauss':
+            centers = self.centers
+            boxsize = self.boxsize
+            kicks = np.random.normal(0, sigma, size=np.shape(centers))
+            self.centers = centers+kicks
+            pass
+        elif noise_type=='drop':
+            particles=len(self.centers)
+            reset_indicies=[]
+            options=np.linspace(0, particles-1, particles)
+            options=options.astype(int)
+            while len(reset_indicies)<(noise_val*particles):
+                i=np.random.randint(0,len(options)-1)
+                reset_indicies.append(options[i])
+                np.delete(options, i)
+            for i in reset_indicies:
+                self.centers[i]=self.boxsize*np.random.random_sample((2,))
+        else:
+            pass
+            
         
     
     def _repel(self, pairs, swell, kick):

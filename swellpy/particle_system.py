@@ -74,7 +74,7 @@ class ParticleSystem():
         if noise_type=='gauss':
             centers = self.centers
             boxsize = self.boxsize
-            kicks = np.random.normal(0, sigma, size=np.shape(centers))
+            kicks = np.random.normal(0, noise_val, size=np.shape(centers))
             self.centers = centers+kicks
             pass
         elif noise_type=='drop':

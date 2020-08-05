@@ -116,13 +116,13 @@ class Monodisperse(ParticleSystem):
         while (cycles > count):
             untagged = 0
             for frac in area_frac:
+                self.pos_noise(noise)
                 swell = self.equiv_swell(frac)
                 pairs = self._tag(swell)
                 if len(pairs) == 0:
                     untagged += 1
                     continue
                 self._repel(pairs, swell, kick)
-                self.pos_noise(noise)
                 self.wrap()
                 if counter == 'kicks':
                     count += 1

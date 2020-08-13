@@ -131,7 +131,7 @@ class Monodisperse(ParticleSystem):
                         break
             if counter == 'list':
                 count += 1
-            if (untagged == len(area_frac) and noise == 0):
+            if (untagged == len(area_frac) and noise_val == 0):
                 break
         return count
 

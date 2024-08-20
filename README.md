@@ -12,7 +12,7 @@ corresponds to the densest packing of disks.
 
 No Memory|Partial Memory|Full Memory
 :------------:|:-------------:|:--------------:
-![alt text](https://nproctor.github.io/img/noMem.png)|![alt text](https://nproctor.github.io/img/partialMem.png)|![alt text](https://nproctor.github.io/img/fullMem.png)
+![Untrained Particle System](./public/untrained.png)|![Partially Trained Particle System](./public/partiallyTrained.png)|![Fully Trained Particle System](./public/fullyTrained.png)
 
 
 ### Installing
